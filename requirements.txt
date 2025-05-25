@@ -1,0 +1,15 @@
+gradio
+vanna[qdrant,openai]
+pandas
+plotly
+python-dotenv
+openai
+qdrant-client
+fastembed
+pydantic
+langchain
+langchain-openai
+pillow
+pdf2image
+sqlalchemy
+psycopg2
