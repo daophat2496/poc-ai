@@ -24,8 +24,6 @@ def run_vanna_query(question):
         }).content
         print("Normalized question: ", normalized_question)
 
-        # Apply VannaAI using pre-processed question
-        # sql = vn.generate_sql(normalized_question)
         vn = get_vanna()
         sql, df, plot = vn.ask(normalized_question)
 

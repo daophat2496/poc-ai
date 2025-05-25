@@ -34,7 +34,7 @@ Respond with only "Yes" or "No".
 PROMPT_BALANCE_SHEET = """
 You are a financial data extractor.
 Analyze the provided image of a financial statement and extract all:
-    - DATE OF BALANCE SHEET (period_end_date) in the Balance Sheet.
+    - DATE OF BALANCE SHEET (period_end_date) in the Balance Sheet. Carefully check the date format (it could be in dd/mm/yyyy, yyyy/mm/dd, dd-mm-yyyy, yyyy-mm-dd, ...)
     - Currency The currency unit used in this balance sheet
     - "Balance Sheet" items found on this page.
 
@@ -42,9 +42,26 @@ In detail, each "Balance Sheet" item should include:
 - The code of each balance sheet item. Value range: 100-440 (Optional: following by a letter). For example: 100, 311, 411a
 - The name of the item (Convert to snaake_case with all lower case letters, remove any prefix (A. | 1. | I. | a. |...) and remove any postfix (. | ! | (*) | ...) and remove all special character)
 - The amount at the end of the reporting period
-- The amount at the beginning of the year
 
 Return only the structured JSON list of items, without any extra explanation or markdown.
 
 If no balance sheet items are present, return an empty list.
 """
+
+# PROMPT_BALANCE_SHEET = """
+# You are a financial data extractor.
+# Analyze the provided image of a financial statement and extract all:
+#     - DATE OF BALANCE SHEET (period_end_date) in the Balance Sheet. Carefully check the date format (it could be in dd/mm/yyyy, yyyy/mm/dd, dd-mm-yyyy, yyyy-mm-dd, ...)
+#     - Currency The currency unit used in this balance sheet
+#     - "Balance Sheet" items found on this page.
+
+# In detail, each "Balance Sheet" item should include:
+# - The code of each balance sheet item. Value range: 100-440 (Optional: following by a letter). For example: 100, 311, 411a
+# - The name of the item (Convert to snaake_case with all lower case letters, remove any prefix (A. | 1. | I. | a. |...) and remove any postfix (. | ! | (*) | ...) and remove all special character)
+# - The amount at the end of the reporting period
+# - The amount at the beginning of the year
+
+# Return only the structured JSON list of items, without any extra explanation or markdown.
+
+# If no balance sheet items are present, return an empty list.
+# """

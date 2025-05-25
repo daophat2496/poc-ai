@@ -16,10 +16,10 @@ class BalanceSheetItem(BaseModel):
         ...,
         description="Amount at the end of the current reporting period."
     )
-    amount_beginning_of_year: int = Field(
-        ...,
-        description="Amount at the beginning of the year."
-    )
+    # amount_beginning_of_year: int = Field(
+    #     ...,
+    #     description="Amount at the beginning of the year."
+    # )
 
 class BalanceSheet(BaseModel):
     """Represents a list of balance sheet items and associated metadata."""

@@ -120,7 +120,7 @@ def process_document(file):
                 item.code,
                 item.name,
                 item.amount_end_of_period,
-                item.amount_beginning_of_year
+                # item.amount_beginning_of_year
             ]
             for item in balance_sheet.balance_sheet_items
         ]
@@ -139,7 +139,8 @@ def process_document(file):
             , balance_sheet.currency
             , pd.DataFrame(
                 balance_sheet_item_list,
-                columns=["Code", "Item", "Period End", "Year Start"]
+                # columns=["Code", "Item", "Period End", "Year Start"]
+                columns=["Code", "Item", "Period End"]
             )
         )
     

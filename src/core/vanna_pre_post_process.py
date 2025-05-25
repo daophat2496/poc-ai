@@ -4,13 +4,13 @@ from src.core.model import model
 # Pre-process question
 pre_prompt = PromptTemplate.from_template(
 """
-You are a financial assistant. Convert the following question into a more formal and precise query suitable for querying a balance sheet database.
-
-The database contains these columns with their description:
-{column_list}
+You are a financial assistant. Convert the following question into a more formal and precise question suitable for querying a balance sheet database.
 
 Question:
 {question}
+
+The database contains these columns with their description:
+{column_list}
 
 Return only the normalized version of the question.
 """

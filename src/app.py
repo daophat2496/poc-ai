@@ -22,6 +22,7 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                     dataframe_output = gr.Dataframe(label="Query Results", wrap=True)
                     plot_output = gr.Plot(label="Visualization", container=True)
             
+            # Even handler for the submit button
             submit_btn.click(
                 fn=run_vanna_query
                 , inputs=question
@@ -54,13 +55,15 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                     with gr.Group():
                         gr.Markdown("### Balance Sheet Items")
                         balance_sheet_table = gr.Dataframe(
-                            headers=["Code", "Item", "Period End", "Year Start"]
-                            , datatype=["str", "str", "number", "number"]
+                            # headers=["Code", "Item", "Period End", "Year Start"]
+                            # , datatype=["str", "str", "number", "number"]
+                            headers=["Code", "Item", "Period End"]
+                            , datatype=["str", "str", "number"]
                             , interactive=False
                             , wrap=True
                         )
             
-            # Connect the upload button
+            # Even handler for the upload button
             upload_btn.click(
                 fn=process_document
                 , inputs=file_upload
