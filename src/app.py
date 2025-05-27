@@ -1,6 +1,4 @@
 import gradio as gr
-import os
-from dotenv import load_dotenv
 from src.core.balance_sheet import process_document
 from src.core.vanna_core import run_vanna_query
 
@@ -8,19 +6,19 @@ from src.core.vanna_core import run_vanna_query
 with gr.Blocks(title="Financial Data Assistant") as app:
     with gr.Tabs(selected="chat_tab") as tabs:
         with gr.Tab("Chat", id="chat_tab"):
-            gr.Markdown("## 💬 Query Financial Database")
+            gr.Markdown("## 💬 Truy Vấn")
             with gr.Row():
                 # Left Panel - Chat
                 with gr.Column(scale=1):
-                    question = gr.Textbox(label="Ask a question", placeholder="E.g.: What's the cash balance for TDS in Q1 2025?")
+                    question = gr.Textbox(label="Đặt câu hỏi", placeholder="E.g.: Tổng tiền mặt của công ty TDS vào quý I 2025 là bao nhiêu?")
                     submit_btn = gr.Button("Submit")
-                    final_answer_output = gr.Textbox(label="Final Answer")
+                    final_answer_output = gr.Textbox(label="Trả lời")
                     
                 # Right Panel - Results
                 with gr.Column(scale=2):
-                    sql_output = gr.Code(label="Generated SQL", language="sql")
-                    dataframe_output = gr.Dataframe(label="Query Results", wrap=True)
-                    plot_output = gr.Plot(label="Visualization", container=True)
+                    sql_output = gr.Code(label="Ngôn ngữ truy vấn", language="sql")
+                    dataframe_output = gr.Dataframe(label="Dữ liệu thô", wrap=True)
+                    plot_output = gr.Plot(label="Biểu đồ", container=True)
             
             # Even handler for the submit button
             submit_btn.click(

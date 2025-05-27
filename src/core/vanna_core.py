@@ -1,7 +1,6 @@
 import pandas as pd
 from dotenv import load_dotenv
 import os
-from src.formatters import format_result
 from src.database2.database_helpers import DB_CONFIG, get_column_name_and_description
 from src.core.vanna_pre_post_process import preprocess_chain, postprocess_chain
 from src.vanna_helpers.init_vanna import get_vanna
