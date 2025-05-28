@@ -75,4 +75,4 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                 ]
             )
 
-app.launch()
+app.launch(share=True)

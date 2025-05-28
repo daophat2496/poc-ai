@@ -22,9 +22,9 @@ qdrant_client = QdrantClient(
 def get_vanna():
     vn = MyVanna(config={
         'client': qdrant_client
-        , 'api_key': os.getenv("MODEL_API_KEY")
+        , 'api_key': os.getenv("OPENAI_API_KEY")
         , 'model': os.getenv("MODEL_NAME")
-        # , 'base_api_url': os.getenv("OPENAI_BASE_URL")
+        , 'base_api_url': os.getenv("OPENAI_BASE_URL")
     })
 
     # vn.connect_to_sqlite('./db/financial_statement.db')

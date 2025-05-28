@@ -6,8 +6,8 @@ import os
 load_dotenv()
 
 model = ChatOpenAI(
-    # 
     api_key=os.getenv('OPENAI_API_KEY')
     , model=os.getenv('MODEL_NAME')
-    # , base_url=os.getenv('OPENAI_BASE_URL')
+    , base_url=os.getenv('OPENAI_BASE_URL')
+    , temperature=0.4
 )

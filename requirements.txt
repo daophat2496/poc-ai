@@ -4,12 +4,11 @@ pandas
 plotly
 python-dotenv
 openai
-qdrant-client
-fastembed
 pydantic
 langchain
 langchain-openai
 pillow
 pdf2image
 sqlalchemy
-psycopg2
+psycopg2-binary
+qdrant-client[fastembed]
