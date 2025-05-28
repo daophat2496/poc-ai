@@ -99,6 +99,9 @@ def process_document(file):
                     response = query_model_with_image_b64([b64_image], BalanceSheetPrompt.PROMPT_IS_BALANCE_SHEET_FIRST)
                     print("page: ", page_file, " - Contains balance sheet? ", response)
                     is_curr_page_contain_balance_sheet = "yes" in response.lower()
+                # response = query_model_with_image_b64([b64_image], BalanceSheetPrompt.PROMPT_IS_BALANCE_SHEET_FIRST)
+                # print("page: ", page_file, " - Contains balance sheet? ", response)
+                # is_curr_page_contain_balance_sheet = "yes" in response.lower()
 
                 if is_curr_page_contain_balance_sheet:
                     balance_sheet_pages.append(b64_image)
@@ -114,7 +117,39 @@ def process_document(file):
                 # results.append(f"Processed page: {page_file}")
         
         print(f"Process {len(balance_sheet_pages)} page(s) which have balance sheet.")
-        balance_sheet = query_model_with_image_b64(balance_sheet_pages, BalanceSheetPrompt.PROMPT_BALANCE_SHEET, BalanceSheet)
+
+        # Process each balance sheet page individually
+        all_balance_sheet_items = []
+        period_end_date = None
+        currency = None
+
+        for i, page_b64 in enumerate(balance_sheet_pages):
+            print(f"Extracting data from balance sheet page {i+1}/{len(balance_sheet_pages)}")
+            
+            try:
+                page_balance_sheet = query_model_with_image_b64([page_b64], BalanceSheetPrompt.PROMPT_BALANCE_SHEET, BalanceSheet)
+                
+                # Collect period_end_date and currency from first successful extraction
+                if period_end_date is None and page_balance_sheet.period_end_date:
+                    period_end_date = page_balance_sheet.period_end_date
+                if currency is None and page_balance_sheet.currency:
+                    currency = page_balance_sheet.currency
+                    
+                # Add all items from this page
+                all_balance_sheet_items.extend(page_balance_sheet.balance_sheet_items)
+                
+            except Exception as e:
+                print(f"Error processing balance sheet page {i+1}: {str(e)}")
+                continue
+
+        # Create combined balance sheet object
+        balance_sheet = BalanceSheet(
+            period_end_date=period_end_date,
+            currency=currency or "VND",  # Default to VND if not found
+            balance_sheet_items=all_balance_sheet_items
+        )
+
+
         balance_sheet_item_list = [
             [
                 item.code,
@@ -140,7 +175,7 @@ def process_document(file):
             , pd.DataFrame(
                 balance_sheet_item_list,
                 # columns=["Code", "Item", "Period End", "Year Start"]
-                columns=["Code", "Item", "Period End"]
+                columns=["Mã số", "Mục", "Số liệu cuối kỳ"]
             )
         )
     
@@ -149,5 +184,5 @@ def process_document(file):
         return (
             f"Status: Error processing document - {str(e)}"
             , "", "", "", ""
-            , pd.DataFrame(columns=["Code", "Item Name", "Period End", "Year Start"])
+            , pd.DataFrame(columns=["Mã số", "Mục", "Số liệu cuối kỳ"])
         )

@@ -27,35 +27,35 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                 , outputs=[sql_output, dataframe_output, plot_output, final_answer_output]
             )
         
-        with gr.Tab("Add Documents", id="docs_tab"):
-            gr.Markdown("## Upload PDF Documents")
+        with gr.Tab("Thêm tài liệu", id="docs_tab"):
+            gr.Markdown("## Tải tài liệu lên")
             with gr.Row():
                 with gr.Column(scale=1):
                     file_upload = gr.File(
                         file_types=[".pdf"]
-                        , label="Drag PDF here"
+                        , label="Kéo và thả file tài liệu vào đây"
                         , type="binary"
                     )
-                    upload_btn = gr.Button("Process Document")
+                    upload_btn = gr.Button("Bắt đầu xử lý")
                     upload_status = gr.Markdown()
                 
                 with gr.Column(scale=3):
                     # Company Information Card
                     with gr.Group():
-                        gr.Markdown("### Company Information")
+                        gr.Markdown("### Thông tin công ty")
                         with gr.Row():
-                            company_name = gr.Textbox(label="Company Name", interactive=False)
-                            stock_code = gr.Textbox(label="Stock Code", interactive=False)
-                            report_date = gr.Textbox(label="Period", interactive=False)
-                            currency = gr.Textbox(label="Currency", interactive=False)
+                            company_name = gr.Textbox(label="Tên", interactive=False)
+                            stock_code = gr.Textbox(label="Mã chứng khoán", interactive=False)
+                            report_date = gr.Textbox(label="Kỳ báo cáo", interactive=False)
+                            currency = gr.Textbox(label="Đơn vị tiền tệ", interactive=False)
                     
                     # Balance Sheet Display
                     with gr.Group():
-                        gr.Markdown("### Balance Sheet Items")
+                        gr.Markdown("### Bảng cân đối tài chính")
                         balance_sheet_table = gr.Dataframe(
                             # headers=["Code", "Item", "Period End", "Year Start"]
                             # , datatype=["str", "str", "number", "number"]
-                            headers=["Code", "Item", "Period End"]
+                            headers=["Mã số", "Mục", "Số liệu cuối kỳ"]
                             , datatype=["str", "str", "number"]
                             , interactive=False
                             , wrap=True
