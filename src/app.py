@@ -55,8 +55,8 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                         balance_sheet_table = gr.Dataframe(
                             # headers=["Code", "Item", "Period End", "Year Start"]
                             # , datatype=["str", "str", "number", "number"]
-                            headers=["Mã số", "Mục", "Số liệu cuối kỳ"]
-                            , datatype=["str", "str", "number"]
+                            headers=["Mã số", "Mục", "Số liệu cuối kỳ", "Số liệu đầu năm"]
+                            , datatype=["str", "str", "str", "str"]
                             , interactive=False
                             , wrap=True
                         )

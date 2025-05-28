@@ -118,6 +118,7 @@ In detail, each "Balance Sheet" item should include:
     - If item shows "A. CURRENT ASSETS" with code "100" in separate column → code is "100"
 - The name of the item (keep the language as is in the image)
 - The amount at the end of the reporting period
+- The amount at the beginning of the year
 
 IMPORTANT: Include ALL items including subtotals and grand totals (like TOTAL ASSETS, TOTAL LIABILITIES, TOTAL CAPITAL, etc.) Even if an item appears to be a summary or total or footer, include it in the extraction.
 Return only the structured JSON list of items, without any extra explanation or markdown.

@@ -20,7 +20,9 @@ preprocess_chain = pre_prompt | model
 # Post-process response
 post_prompt = PromptTemplate.from_template(
 """
-Provide a clear and concise explanation of the results in natural language. Result must be in original question language.
+Provide a clear and concise explanation of the results in natural language. Result must be in language of original question.
+- If the original question is in Vietnamese, you must answer in Vietnamese
+- If the original question is in English, you must answer in English
 
 Given the original question:
 {original_question}

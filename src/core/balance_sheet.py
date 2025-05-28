@@ -47,6 +47,11 @@ def is_affirmative_response(response: str) -> bool:
     """Check if the input response is "Yes" for "ONLY answer 'Yes' or 'No'" prompt"""
     return "yes" in response.strip().lower()
 
+def format_number(num):
+    if isinstance(num, (int, float)):
+        return f"{num:,.0f}".replace(",", ".")
+    return num
+
 def process_document(file):
     if not file:
         return "No file uploaded", ""
@@ -155,7 +160,7 @@ def process_document(file):
                 item.code,
                 item.name,
                 item.amount_end_of_period,
-                # item.amount_beginning_of_year
+                item.amount_beginning_of_year
             ]
             for item in balance_sheet.balance_sheet_items
         ]
@@ -166,17 +171,21 @@ def process_document(file):
         os.remove(temp_pdf_path)
         shutil.rmtree(images_folder)
 
+        df = pd.DataFrame(
+            balance_sheet_item_list,
+            columns=["Mã số", "Mục", "Số liệu cuối kỳ", "Số liệu đầu năm"]
+        )
+        # Apply formatting to the numeric columns
+        df["Số liệu cuối kỳ"] = df["Số liệu cuối kỳ"].apply(format_number)
+        df["Số liệu đầu năm"] = df["Số liệu đầu năm"].apply(format_number)
+
         return (
             "Status: Processing completed successfully"
             , company_name
             , stock_code
             , balance_sheet.period_end_date.strftime("%Y-%m-%d")
             , balance_sheet.currency
-            , pd.DataFrame(
-                balance_sheet_item_list,
-                # columns=["Code", "Item", "Period End", "Year Start"]
-                columns=["Mã số", "Mục", "Số liệu cuối kỳ"]
-            )
+            , df
         )
     
     except Exception as e:
@@ -184,5 +193,5 @@ def process_document(file):
         return (
             f"Status: Error processing document - {str(e)}"
             , "", "", "", ""
-            , pd.DataFrame(columns=["Mã số", "Mục", "Số liệu cuối kỳ"])
+            , pd.DataFrame(columns=["Mã số", "Mục", "Số liệu cuối kỳ", "Số liệu đầu năm"])
         )
