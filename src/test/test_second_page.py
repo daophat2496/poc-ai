@@ -3,18 +3,18 @@ from src.prompts.balance_sheet import PROMPT_IS_BALANCE_SHEET_CONT, PROMPT_IS_BA
 from langchain_core.messages import HumanMessage
 
 prompt = f"""
-I am giving you below QUESTION with 2 images. Explain why you say the second one is not a balance sheet:
-- Review the QUESTION below to know what I ask you to do
-- The result you give for that QUESTION was "No" (I tried to ask many time)
+I am giving you below REFERENCE QUESTION with 2 images. Explain (not answer the below REFERENCE QUESTION) why you say the second one is not a balance sheet:
+- Review the REFERENCE QUESTION below to know what I ask you to do
+- The result you give for that REFERENCE QUESTION was "No" (I tried to ask many time)
 - Explain why you answered "No"
 - Advice how I can improve the question (with the same template), this second image IS a part of balance sheet
 
-==== QUESTION ====
+==== REFERENCE QUESTION ====
 {PROMPT_IS_BALANCE_SHEET_CONT}
 """
 
-image1 = ".\image\page_010.jpg"
-image2 = ".\image\page_011.jpg"
+image1 = ".\image\page_009.jpg"
+image2 = ".\image\page_010.jpg"
 
 message = HumanMessage(
     content=[
