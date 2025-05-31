@@ -9,5 +9,6 @@ model = ChatOpenAI(
     api_key=os.getenv('OPENAI_API_KEY')
     , model=os.getenv('MODEL_NAME')
     , base_url=os.getenv('OPENAI_BASE_URL')
-    , temperature=0.4
+    , temperature=0.3
+    # , top_p=0.95             # Enable nucleus sampling
 )

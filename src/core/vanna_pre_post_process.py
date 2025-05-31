@@ -17,25 +17,35 @@ Return only the normalized version of the question.
 )
 preprocess_chain = pre_prompt | model
 
-# Post-process response
 post_prompt = PromptTemplate.from_template(
 """
-Provide a clear and concise explanation of the results in natural language. Result must be in language of original question.
+Provide a clear and concise explanation of the results in natural language.
+**IMPORTANT** Result must be in language of original question:
 - If the original question is in Vietnamese, you must answer in Vietnamese
 - If the original question is in English, you must answer in English
 
 Given the original question:
 {original_question}
 
-normalized question:
-{normalized_question}
-
 And the resulting data:
 {data}
 """
 )
-# post_prompt_template = PromptTemplate(
-#     input_variables=["original_question", "normalized_question", "data"]
-#     , template=post_prompt,
+# post_prompt = PromptTemplate.from_template(
+# """
+# Provide a clear and concise explanation of the results in natural language. Result must be in language of original question.
+# - If the original question is in Vietnamese, you must answer in Vietnamese
+# - If the original question is in English, you must answer in English
+
+# Given the original question:
+# {original_question}
+
+# normalized question:
+# {normalized_question}
+
+# And the resulting data:
+# {data}
+# """
 # )
+
 postprocess_chain = post_prompt | model

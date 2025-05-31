@@ -1,5 +1,5 @@
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from dotenv import load_dotenv
 import os
 from pdf2image import convert_from_path
@@ -30,18 +30,26 @@ def encode_image(image_path):
     image.save(buffered, format="JPEG")
     return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
-def query_model_with_image_b64(image_b64_list, prompt, structure: BaseModel = None):
-    message = HumanMessage(
+def query_model_with_image_b64(image_b64_list, prompt, structure: BaseModel = None, system_message = None):
+    messages = []
+    
+    # Add system message if provided
+    if system_message:
+        messages.append(SystemMessage(content=system_message))
+
+    human_message = HumanMessage(
         content=[{"type": "text", "text": prompt}]
     )
 
     for image_b64 in image_b64_list:
-        message.content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}})
+        human_message.content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}})
+    
+    messages.append(human_message)
 
     if not structure:
-        return model.invoke([message]).content
+        return model.invoke(messages).content
 
-    return model.with_structured_output(structure, method="function_calling").invoke([message])
+    return model.with_structured_output(structure, method="function_calling").invoke(messages)
 
 def is_affirmative_response(response: str) -> bool:
     """Check if the input response is "Yes" for "ONLY answer 'Yes' or 'No'" prompt"""

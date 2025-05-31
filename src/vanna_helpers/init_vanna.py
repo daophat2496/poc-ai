@@ -25,6 +25,7 @@ def get_vanna():
         , 'api_key': os.getenv("OPENAI_API_KEY")
         , 'model': os.getenv("MODEL_NAME")
         , 'base_api_url': os.getenv("OPENAI_BASE_URL")
+        , 'max_tokens': 10000
     })
 
     # vn.connect_to_sqlite('./db/financial_statement.db')

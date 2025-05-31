@@ -1,9 +1,14 @@
-PROMPT_COMPANY_NAME = """What is the company name? If the company name appears in this page, return only the full legal name. Otherwise, ONLY return "No". """
+PROMPT_COMPANY_NAME = """What is the company name?
+If the company name appears in this page, *IMPORTANT* return only the name, DO NOT translate it, DO NOT add any explanation.
+Otherwise, ONLY return "No". DO NOT add any explanation.
+"""
 
-PROMPT_STOCK_CODE = """What is the stock code? If the stock code appears in this page, return only the stock code. Otherwise, ONLY return "No". """
+PROMPT_STOCK_CODE = """What is the stock code?
+If the stock code appears in this page, *IMPORTANT* return only the stock code, DO NOT translate it, DO NOT add any explanation.
+Otherwise, ONLY return "No". DO NOT add any explanation.
+"""
 
-
-PROMPT_IS_BALANCE_SHEET_FIRST = """Does this page contain a balance sheet or part of a balance sheet?
+PROMPT_IS_BALANCE_SHEET_FIRST = """This is a Yes/No question. Does this page contain a balance sheet or part of a balance sheet?
 
 Look for these key indicators:
 - A table, or a table-like text box, or lists of items with financial data organized in rows and columns
@@ -15,10 +20,17 @@ Look for these key indicators:
 
 A balance sheet may be split across multiple pages, so this could be any section.
 
-Respond with only "Yes" or "No".
+*IMPORTANT*: Respond with only "Yes" or "No", DO NOT add any explanation.
+
+Example:
+Input: [images]
+Output: Yes
+
+Input: [images]
+Output: No
 """
 
-PROMPT_IS_BALANCE_SHEET_CONT = """You are given 2 images. The FIRST image contains a confirmed balance sheet.
+PROMPT_IS_BALANCE_SHEET_CONT = """This is a Yes/No question. You are given 2 images. The FIRST image contains a confirmed balance sheet.
 
 Does the SECOND image contain a balance sheet, or contain a part of a balance sheet, it may continue balance sheet in the first image, or contain related balance sheet content?
 
@@ -33,7 +45,14 @@ The second image should have:
 
 Even if the section names are different (e.g., first image shows ASSETS, second shows CAPITAL), it's still part of the same balance sheet if the structure matches.
 
-Respond with only "Yes" or "No".
+*IMPORTANT*: Respond with only "Yes" or "No", DO NOT add any explanation.
+
+Example:
+Input: [images]
+Output: Yes
+
+Input: [images]
+Output: No
 """
 
 # PROMPT_IS_BALANCE_SHEET_FIRST = """Is this page contain a Balance sheet (or a part of a balance sheet)?
