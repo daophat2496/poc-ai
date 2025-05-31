@@ -35,7 +35,9 @@ def query_model_with_image_b64(image_b64_list, prompt, structure: BaseModel = No
     
     # Add system message if provided
     if system_message:
-        messages.append(SystemMessage(content=system_message))
+        messages.append(SystemMessage(
+            content=[{"type": "text", "text": system_message}]
+        ))
 
     human_message = HumanMessage(
         content=[{"type": "text", "text": prompt}]
@@ -104,12 +106,13 @@ def process_document(file):
 
             # Check does this page contain balance sheet
             if not is_balance_sheet_detected:
+                yes_no_system_prompt = "You are a document classification system that outputs binary decisions. Your responses must be exactly 'Yes' or 'No' - nothing else. No explanations, no punctuation, no additional words."
                 if is_prev_page_contain_balance_sheet:
-                    response = query_model_with_image_b64([previous_b64_image, b64_image], BalanceSheetPrompt.PROMPT_IS_BALANCE_SHEET_CONT)
+                    response = query_model_with_image_b64([previous_b64_image, b64_image], BalanceSheetPrompt.PROMPT_IS_BALANCE_SHEET_CONT, None, yes_no_system_prompt)
                     print("page: ", page_file, " - Contains balance sheet? ", response, " with previous page include ", len(previous_b64_image))
                     is_curr_page_contain_balance_sheet = "yes" in response.lower()
                 else:
-                    response = query_model_with_image_b64([b64_image], BalanceSheetPrompt.PROMPT_IS_BALANCE_SHEET_FIRST)
+                    response = query_model_with_image_b64([b64_image], BalanceSheetPrompt.PROMPT_IS_BALANCE_SHEET_FIRST, None, yes_no_system_prompt)
                     print("page: ", page_file, " - Contains balance sheet? ", response)
                     is_curr_page_contain_balance_sheet = "yes" in response.lower()
                 # response = query_model_with_image_b64([b64_image], BalanceSheetPrompt.PROMPT_IS_BALANCE_SHEET_FIRST)
@@ -140,7 +143,15 @@ def process_document(file):
             print(f"Extracting data from balance sheet page {i+1}/{len(balance_sheet_pages)}")
             
             try:
-                page_balance_sheet = query_model_with_image_b64([page_b64], BalanceSheetPrompt.PROMPT_BALANCE_SHEET, BalanceSheet)
+                system_prompt = """
+You are a specialized financial statement data extraction system. Your role is to:
+1. Extract structured financial data from balance sheet images
+2. Output ONLY valid JSON format without any markdown, explanations, or additional text
+3. Follow the exact schema requirements
+4. Never add commentary, warnings, or explanations - only return the requested JSON structure
+5. Process all provided images comprehensively and combine their data into a single output
+"""
+                page_balance_sheet = query_model_with_image_b64([page_b64], BalanceSheetPrompt.PROMPT_BALANCE_SHEET, BalanceSheet, system_prompt)
                 
                 # Collect period_end_date and currency from first successful extraction
                 if period_end_date is None and page_balance_sheet.period_end_date:
