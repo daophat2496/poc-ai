@@ -6,7 +6,7 @@ from src.core.vanna_pre_post_process import preprocess_chain, postprocess_chain
 from src.vanna_helpers.init_vanna import get_vanna
 import time
 
-load_dotenv()
+load_dotenv(override=True)
 
 def run_vanna_query(question):
     """Execute Vanna query and return results + visualization"""

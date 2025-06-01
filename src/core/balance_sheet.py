@@ -66,6 +66,7 @@ def process_document(file):
     if not file:
         return "No file uploaded", ""
     
+    print("Start processing document")
     try:
         images_folder = "./image"
         company_name = None
@@ -115,9 +116,6 @@ def process_document(file):
                     response = query_model_with_image_b64([b64_image], BalanceSheetPrompt.PROMPT_IS_BALANCE_SHEET_FIRST, None, yes_no_system_prompt)
                     print("page: ", page_file, " - Contains balance sheet? ", response)
                     is_curr_page_contain_balance_sheet = "yes" in response.lower()
-                # response = query_model_with_image_b64([b64_image], BalanceSheetPrompt.PROMPT_IS_BALANCE_SHEET_FIRST)
-                # print("page: ", page_file, " - Contains balance sheet? ", response)
-                # is_curr_page_contain_balance_sheet = "yes" in response.lower()
 
                 if is_curr_page_contain_balance_sheet:
                     balance_sheet_pages.append(b64_image)
@@ -126,11 +124,8 @@ def process_document(file):
                 elif is_prev_page_contain_balance_sheet:
                     is_balance_sheet_detected = True
                     print("All page with balance sheet detected. Stop scan for it.")
-                # else:
-                #     previous_b64_image = None
 
                 is_prev_page_contain_balance_sheet = is_curr_page_contain_balance_sheet
-                # results.append(f"Processed page: {page_file}")
         
         print(f"Process {len(balance_sheet_pages)} page(s) which have balance sheet.")
 
@@ -143,14 +138,12 @@ def process_document(file):
             print(f"Extracting data from balance sheet page {i+1}/{len(balance_sheet_pages)}")
             
             try:
-                system_prompt = """
-You are a specialized financial statement data extraction system. Your role is to:
+                system_prompt = """You are a specialized financial statement data extraction system. Your role is to:
 1. Extract structured financial data from balance sheet images
 2. Output ONLY valid JSON format without any markdown, explanations, or additional text
 3. Follow the exact schema requirements
 4. Never add commentary, warnings, or explanations - only return the requested JSON structure
-5. Process all provided images comprehensively and combine their data into a single output
-"""
+5. Process all provided images comprehensively and combine their data into a single output."""
                 page_balance_sheet = query_model_with_image_b64([page_b64], BalanceSheetPrompt.PROMPT_BALANCE_SHEET, BalanceSheet, system_prompt)
                 
                 # Collect period_end_date and currency from first successful extraction

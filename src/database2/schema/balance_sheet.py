@@ -4,7 +4,7 @@ from sqlalchemy.orm import declarative_base, relationship
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+load_dotenv(override=True)
 Base = declarative_base()
 
 class BalanceSheetAtEndOfPeriodORM(Base):

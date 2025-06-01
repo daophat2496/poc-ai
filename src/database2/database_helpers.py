@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 DB_CONFIG = {
     "type": os.getenv("DB_TYPE")  # Options: 'sqlite', 'postgresql', 'mysql', etc.

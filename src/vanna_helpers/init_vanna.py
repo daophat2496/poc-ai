@@ -7,7 +7,7 @@ import os
 from src.database2.database_helpers import DB_CONFIG, get_column_name_and_description
 from src.core.vanna_pre_post_process import preprocess_chain, postprocess_chain
 
-load_dotenv()
+load_dotenv(override=True)
 
 class MyVanna(Qdrant_VectorStore, OpenAI_Chat):
     def __init__(self, config=None):
