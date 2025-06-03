@@ -128,7 +128,7 @@ class BalanceSheetAtEndOfPeriodORM(Base):
     enterprise_reorganization_assistance_fund = Column(DECIMAL(20, 2), comment='Reserve for enterprise restructuring | Quỹ hỗ trợ sắp xếp doanh nghiệp')
     other_equity_fund = Column(DECIMAL(20, 2), comment='Other equity reserves | Quỹ khác thuộc vốn chủ sở hữu')
     undistributed_post_tax_profits = Column(DECIMAL(20, 2), comment='Retained earnings | Lợi nhuận sau thuế chưa phân phối')
-    undistributed_post_tax_profits_accumulated_by_the_end_of_the_previous_period = Column(DECIMAL(20, 2), comment='Retained earnings from prior periods | Lợi nhuận sau thuế chưa phân phối lũy kế đến cuối kỳ trước')
+    undistributed_post_tax_profits_accumulated_end_of_prv_period = Column(DECIMAL(20, 2), comment='Retained earnings from prior periods | Lợi nhuận sau thuế chưa phân phối lũy kế đến cuối kỳ trước')
     undistributed_post_tax_profits_of_current_period = Column(DECIMAL(20, 2), comment='Current period net income not yet distributed | Lợi nhuận sau thuế chưa phân phối kỳ hiện tại')
     capital_expenditure_fund = Column(DECIMAL(20, 2), comment='Reserve for capital expenditures | Quỹ đầu tư phát triển')
     funding_and_other_funds = Column(DECIMAL(20, 2), comment='Government grants and other funding | Nguồn kinh phí và quỹ khác')

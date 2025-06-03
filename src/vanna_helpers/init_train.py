@@ -2,7 +2,8 @@ from src.vanna_helpers.init_vanna import get_vanna
 
 def add_column_name_list():
     vn = get_vanna()
-    doc = """(ONLY USE THESE COLUMNS FOR QUERY) Column name list in balance_sheets_at_end_of_period table: id | company_name | stock_code | period_end_date | currency | created_at | updated_at | short_term_assets | cash_and_cash_equivalents | cash | cash_equivalents | short_term_financial_investments | trading_securities | provision_for_decrease_in_value_of_trading_securities | short_term_investments_held_to_maturity | short_term_receivables | short_term_receivables_from_customers | prepayments_to_sellers_in_short_term | short_term_intercompany_receivables | receivables_according_to_the_progress_of_construction_com | short_term_loan_receivables | other_short_term_receivables | provision_for_uncollectible_short_term_receivables | shortage_of_assets_awaiting_resolution | inventories_total | inventories | provision_against_devaluation_of_goods_in_stock | other_short_term_assets_total | short_term_prepaid_expenses | deductible_vat | taxes_and_other_revenues_to_the_state | purchase_and_resale_of_government_bonds | other_short_term_assets | long_term_assets | long_term_receivables | long_term_receivables_from_customers | prepayments_to_suppliers_in_long_term | working_capital_provided_to_subordinate_units | long_term_intercompany_receivables | receivables_on_long_term_loans | other_long_term_receivables | provision_for_doubtful_long_term_receivables | fixed_assets | tangible_fixed_assets | tangible_fixed_assets_historical_costs | tangible_fixed_assets_value_of_accumulated_depreciation | finance_lease_fixed_asset | finance_lease_fixed_asset_historical_costs | finance_lease_fixed_asset_value_of_accumulated_depreciation | intangible_fixed_assets | intangible_fixed_assets_historical_costs | intangible_fixed_assets_value_of_accumulated_depreciation | investment_real_property | investment_real_property_historical_costs | investment_real_property_value_of_accumulated_depreciation | long_term_unfinished_assets | cost_of_long_term_work_in_progress | cost_of_construction_in_progress | long_term_financial_investments | investments_in_subsidiaries | investments_in_associated_companies_and_joint_ventures | investments_in_other_units | provisions_for_long_term_financial_investments | long_term_investments_held_to_maturity | other_long_term_assets_total | long_term_prepaid_expenses | deferred_income_tax_assets | long_term_equipment_supplies_and_spare_parts | other_long_term_assets | total_assets | liabilities | short_term_debt | short_term_supplier_payables | short_term_deferred_revenues | taxes_and_other_payables_to_state | payables_to_employees | short_term_expenses_payable | short_term_intercompany_payables | payables_according_to_the_progress_of_construction_contract | short_term_unearned_revenue | other_short_term_payables | short_term_loans_and_finance_lease_liabilities | provision_for_short_term_payables | bonus_and_welfare_fund | price_stabilization_fund | long_term_liabilities | long_term_supplier_payables | long_term_deferred_revenues | long_term_expenses_payable | intercompany_payables_on_working_capital | long_term_intercompany_payables | long_term_unearned_revenue | other_long_term_payables | long_term_loans_and_finance_lease_liabilities | convertible_bonds | long_term_liabilities_preference_shares | deferred_income_tax | provision_for_long_term_payables | scientific_and_technological_development_fund | owner_equity_total | owner_equity | contributions_from_owners | ordinary_shares_with_voting_rights | owner_equity_preference_shares | share_premium | conversion_options_on_bond | other_capital_of_owners | treasury_shares | differences_upon_asset_revaluation | exchange_differences | development_investment_funds | enterprise_reorganization_assistance_fund | other_equity_fund | undistributed_post_tax_profits | undistributed_post_tax_profits_accumulated_by_the_end_of_the_pr | undistributed_post_tax_profits_of_current_period | capital_expenditure_fund | funding_and_other_funds | funding | funds_that_form_fixed_assets | total_capital"""
+    doc = """**IMPORTANT** Only use this set of columns in query generated, this is list of columns in balance_sheets_at_end_of_period table
+id | company_name | stock_code | period_end_date | currency | created_at | updated_at | short_term_assets | cash_and_cash_equivalents | cash | cash_equivalents | short_term_financial_investments | trading_securities | provision_for_decrease_in_value_of_trading_securities | short_term_investments_held_to_maturity | short_term_receivables | short_term_receivables_from_customers | prepayments_to_sellers_in_short_term | short_term_intercompany_receivables | receivables_according_to_the_progress_of_construction_com | short_term_loan_receivables | other_short_term_receivables | provision_for_uncollectible_short_term_receivables | shortage_of_assets_awaiting_resolution | inventories_total | inventories | provision_against_devaluation_of_goods_in_stock | other_short_term_assets_total | short_term_prepaid_expenses | deductible_vat | taxes_and_other_revenues_to_the_state | purchase_and_resale_of_government_bonds | other_short_term_assets | long_term_assets | long_term_receivables | long_term_receivables_from_customers | prepayments_to_suppliers_in_long_term | working_capital_provided_to_subordinate_units | long_term_intercompany_receivables | receivables_on_long_term_loans | other_long_term_receivables | provision_for_doubtful_long_term_receivables | fixed_assets | tangible_fixed_assets | tangible_fixed_assets_historical_costs | tangible_fixed_assets_value_of_accumulated_depreciation | finance_lease_fixed_asset | finance_lease_fixed_asset_historical_costs | finance_lease_fixed_asset_value_of_accumulated_depreciation | intangible_fixed_assets | intangible_fixed_assets_historical_costs | intangible_fixed_assets_value_of_accumulated_depreciation | investment_real_property | investment_real_property_historical_costs | investment_real_property_value_of_accumulated_depreciation | long_term_unfinished_assets | cost_of_long_term_work_in_progress | cost_of_construction_in_progress | long_term_financial_investments | investments_in_subsidiaries | investments_in_associated_companies_and_joint_ventures | investments_in_other_units | provisions_for_long_term_financial_investments | long_term_investments_held_to_maturity | other_long_term_assets_total | long_term_prepaid_expenses | deferred_income_tax_assets | long_term_equipment_supplies_and_spare_parts | other_long_term_assets | total_assets | liabilities | short_term_debt | short_term_supplier_payables | short_term_deferred_revenues | taxes_and_other_payables_to_state | payables_to_employees | short_term_expenses_payable | short_term_intercompany_payables | payables_according_to_the_progress_of_construction_contract | short_term_unearned_revenue | other_short_term_payables | short_term_loans_and_finance_lease_liabilities | provision_for_short_term_payables | bonus_and_welfare_fund | price_stabilization_fund | long_term_liabilities | long_term_supplier_payables | long_term_deferred_revenues | long_term_expenses_payable | intercompany_payables_on_working_capital | long_term_intercompany_payables | long_term_unearned_revenue | other_long_term_payables | long_term_loans_and_finance_lease_liabilities | convertible_bonds | long_term_liabilities_preference_shares | deferred_income_tax | provision_for_long_term_payables | scientific_and_technological_development_fund | owner_equity_total | owner_equity | contributions_from_owners | ordinary_shares_with_voting_rights | owner_equity_preference_shares | share_premium | conversion_options_on_bond | other_capital_of_owners | treasury_shares | differences_upon_asset_revaluation | exchange_differences | development_investment_funds | enterprise_reorganization_assistance_fund | other_equity_fund | undistributed_post_tax_profits | undistributed_post_tax_profits_accumulated_end_of_prv_period | undistributed_post_tax_profits_of_current_period | capital_expenditure_fund | funding_and_other_funds | funding | funds_that_form_fixed_assets | total_capital"""
 
     vn.add_documentation(documentation=doc)
 
@@ -121,7 +122,7 @@ development_investment_funds: Reserves for development and investment | Quỹ đ
 enterprise_reorganization_assistance_fund: Reserve for enterprise restructuring | Quỹ hỗ trợ sắp xếp doanh nghiệp
 other_equity_fund: Other equity reserves | Quỹ khác thuộc vốn chủ sở hữu
 undistributed_post_tax_profits: Retained earnings | Lợi nhuận sau thuế chưa phân phối
-undistributed_post_tax_profits_accumulated_by_the_end_of_the_pr: Retained earnings from prior periods | Lợi nhuận sau thuế chưa phân phối lũy kế đến cuối kỳ trước
+undistributed_post_tax_profits_accumulated_end_of_prv_period: Retained earnings from prior periods | Lợi nhuận sau thuế chưa phân phối lũy kế đến cuối kỳ trước
 undistributed_post_tax_profits_of_current_period: Current period net income not yet distributed | Lợi nhuận sau thuế chưa phân phối kỳ hiện tại
 capital_expenditure_fund: Reserve for capital expenditures | Quỹ đầu tư phát triển
 funding_and_other_funds: Government grants and other funding | Nguồn kinh phí và quỹ khác
@@ -249,7 +250,7 @@ CREATE TABLE public.balance_sheets_at_end_of_period (
     enterprise_reorganization_assistance_fund numeric(20,2),
     other_equity_fund numeric(20,2),
     undistributed_post_tax_profits numeric(20,2),
-    undistributed_post_tax_profits_accumulated_by_the_end_of_the_pr numeric(20,2),
+    undistributed_post_tax_profits_accumulated_end_of_prv_period numeric(20,2),
     undistributed_post_tax_profits_of_current_period numeric(20,2),
     capital_expenditure_fund numeric(20,2),
     funding_and_other_funds numeric(20,2),
@@ -364,7 +365,7 @@ CREATE TABLE public.balance_sheets_at_end_of_period (
 # COMMENT ON COLUMN public.balance_sheets_at_end_of_period.enterprise_reorganization_assistance_fund IS 'Reserve for enterprise restructuring | Quỹ hỗ trợ sắp xếp doanh nghiệp';
 # COMMENT ON COLUMN public.balance_sheets_at_end_of_period.other_equity_fund IS 'Other equity reserves | Quỹ khác thuộc vốn chủ sở hữu';
 # COMMENT ON COLUMN public.balance_sheets_at_end_of_period.undistributed_post_tax_profits IS 'Retained earnings | Lợi nhuận sau thuế chưa phân phối';
-# COMMENT ON COLUMN public.balance_sheets_at_end_of_period.undistributed_post_tax_profits_accumulated_by_the_end_of_the_pr IS 'Retained earnings from prior periods | Lợi nhuận sau thuế chưa phân phối lũy kế đến cuối kỳ trước';
+# COMMENT ON COLUMN public.balance_sheets_at_end_of_period.undistributed_post_tax_profits_accumulated_end_of_prv_period IS 'Retained earnings from prior periods | Lợi nhuận sau thuế chưa phân phối lũy kế đến cuối kỳ trước';
 # COMMENT ON COLUMN public.balance_sheets_at_end_of_period.undistributed_post_tax_profits_of_current_period IS 'Current period net income not yet distributed | Lợi nhuận sau thuế chưa phân phối kỳ hiện tại';
 # COMMENT ON COLUMN public.balance_sheets_at_end_of_period.capital_expenditure_fund IS 'Reserve for capital expenditures | Quỹ đầu tư phát triển';
 # COMMENT ON COLUMN public.balance_sheets_at_end_of_period.funding_and_other_funds IS 'Government grants and other funding | Nguồn kinh phí và quỹ khác';
@@ -421,7 +422,7 @@ def add_company_query():
 VannaAI: Company identification pattern
 
 Use this WHERE clause for company queries:
-WHERE (LOWER(stock_code) = LOWER($1) OR LOWER(company_name) LIKE LOWER('%' || $2 || '%'))
+WHERE (LOWER(stock_code) = LOWER('code') OR LOWER(company_name) LIKE LOWER('%' || 'code' || '%'))
 
 Examples:
 - AAPL: WHERE (LOWER(stock_code) = 'aapl' OR LOWER(company_name) LIKE '%aapl%')
@@ -545,7 +546,7 @@ def add_column_description():
     enterprise_reorganization_assistance_fund: Reserve for enterprise restructuring | Quỹ hỗ trợ sắp xếp doanh nghiệp
     other_equity_fund: Other equity reserves | Quỹ khác thuộc vốn chủ sở hữu
     undistributed_post_tax_profits: Retained earnings | Lợi nhuận sau thuế chưa phân phối
-    undistributed_post_tax_profits_accumulated_by_the_end_of_the_pr: Retained earnings from prior periods | Lợi nhuận sau thuế chưa phân phối lũy kế đến cuối kỳ trước
+    undistributed_post_tax_profits_accumulated_end_of_prv_period: Retained earnings from prior periods | Lợi nhuận sau thuế chưa phân phối lũy kế đến cuối kỳ trước
     undistributed_post_tax_profits_of_current_period: Current period net income not yet distributed | Lợi nhuận sau thuế chưa phân phối kỳ hiện tại
     capital_expenditure_fund: Reserve for capital expenditures | Quỹ đầu tư phát triển
     funding_and_other_funds: Government grants and other funding | Nguồn kinh phí và quỹ khác
@@ -564,9 +565,8 @@ When calculating totals, always use COALESCE to handle NULL values:
 field1 + field2 => COALESCE(field1, 0) + COALESCE(field2, 0)
 
 Examples:
-- Total debt: COALESCE(short_term_debt, 0) + COALESCE(long_term_debt, 0)
-- Total assets: COALESCE(current_assets, 0) + COALESCE(fixed_assets, 0)
-- Total revenue: COALESCE(product_revenue, 0) + COALESCE(service_revenue, 0)
+- Total debt: COALESCE(short_term_debt, 0) + COALESCE(long_term_liabilities, 0)
+- Total assets: COALESCE(short_term_assets, 0) + COALESCE(fixed_assets, 0)
 
 Rule: Wrap each field in COALESCE(field, 0) to prevent NULL results"""
     vn.train(documentation=doc)
@@ -575,7 +575,7 @@ if __name__ == "__main__":
     # add_column_description()
     add_column_name_list()
     add_company_query()
-    add_ddl()
-    # add_balance_sheet_end_of_period_introduction()
-    # add_column_description()
+    # add_ddl()
+    # # add_balance_sheet_end_of_period_introduction()
+    # # add_column_description()
     add_coalesce_for_total_doc()

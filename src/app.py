@@ -12,7 +12,7 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                 with gr.Column(scale=1):
                     question = gr.Textbox(label="Đặt câu hỏi", placeholder="E.g.: Tổng tiền mặt của công ty TDS vào quý I 2025 là bao nhiêu?")
                     submit_btn = gr.Button("Submit")
-                    final_answer_output = gr.Textbox(label="Trả lời")
+                    final_answer_output = gr.Markdown(label="Trả lời")
                     
                 # Right Panel - Results
                 with gr.Column(scale=2):
@@ -75,4 +75,4 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                 ]
             )
 
-app.launch(server_name="0.0.0.0")
+app.launch(share=True, server_name="0.0.0.0")

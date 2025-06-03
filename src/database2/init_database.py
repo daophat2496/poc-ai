@@ -121,7 +121,7 @@ def add_static_data_for_balance_sheet_item_standardized():
         ('419', 'enterprise_reorganization_assistance_fund'),
         ('420', 'other_equity_fund'),
         ('421', 'undistributed_post_tax_profits'),
-        ('421a', 'undistributed_post_tax_profits_accumulated_by_the_end_of_the_previous_period'),
+        ('421a', 'undistributed_post_tax_profits_accumulated_end_of_prv_period'),
         ('421b', 'undistributed_post_tax_profits_of_current_period'),
         ('422', 'capital_expenditure_fund'),
         ('430', 'funding_and_other_funds'),

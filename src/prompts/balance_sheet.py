@@ -1,22 +1,28 @@
 PROMPT_COMPANY_NAME = """What is the company name?
 If the company name appears in this page, *IMPORTANT* return only the name, DO NOT translate it, DO NOT add any explanation.
 Otherwise, ONLY return "No". DO NOT add any explanation.
+
 Example:
 Input: [image]
 Output: Công ty Cổ phần Xây Dựng Coteccons
+
 Input: [image]
 Output: Kosy Joint Stock Company
+
 Input: [image]
 Output: No"""
 
 PROMPT_STOCK_CODE = """What is the stock code?
 If the stock code appears in this page, *IMPORTANT* return only the stock code, DO NOT translate it, DO NOT add any explanation.
 Otherwise, ONLY return "No". DO NOT add any explanation.
+
 Example:
 Input: [image]
 Output: CTD
+
 Input: [image]
 Output: TTE
+
 Input: [image]
 Output: No"""
 
@@ -30,9 +36,11 @@ Look for these key indicators:
 - Item names typical of balance sheets (Cash, Inventories, Fixed assets, etc.)
 A balance sheet may be split across multiple pages, so this could be any section.
 *IMPORTANT*: Respond with only "Yes" or "No", DO NOT add any explanation.
+
 Example:
 Input: [images]
 Output: Yes
+
 Input: [images]
 Output: No"""
 
@@ -48,14 +56,15 @@ The second image should have:
 - Financial data in the same format and currency
 Even if the section names are different (e.g., first image shows ASSETS, second shows CAPITAL), it's still part of the same balance sheet if the structure matches.
 *IMPORTANT*: Respond with only "Yes" or "No", DO NOT add any explanation.
+
 Example:
 Input: [images]
 Output: Yes
+
 Input: [images]
 Output: No"""
 
-PROMPT_BALANCE_SHEET = """
-You are a financial data extractor.
+PROMPT_BALANCE_SHEET = """You are a financial data extractor.
 Analyze ALL provided images of financial statements and extract all:
     - DATE OF BALANCE SHEET (period_end_date) in the Balance Sheet. CRITICAL: Pay careful attention to date format interpretation:
         * If format appears to be DD/MM/YYYY or DD-MM-YYYY (day first), interpret accordingly (e.g., "30/06/2024" = June 30, 2024)
