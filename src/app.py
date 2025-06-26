@@ -16,7 +16,7 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                     
                 # Right Panel - Results
                 with gr.Column(scale=2):
-                    sql_output = gr.Code(label="Ngôn ngữ truy vấn", language="sql")
+                    # sql_output = gr.Code(label="Ngôn ngữ truy vấn", language="sql")
                     dataframe_output = gr.Dataframe(label="Dữ liệu thô", wrap=True)
                     plot_output = gr.Plot(label="Biểu đồ", container=True)
             
@@ -24,7 +24,7 @@ with gr.Blocks(title="Financial Data Assistant") as app:
             submit_btn.click(
                 fn=run_vanna_query
                 , inputs=question
-                , outputs=[sql_output, dataframe_output, plot_output, final_answer_output]
+                , outputs=[dataframe_output, plot_output, final_answer_output]
             )
         
         with gr.Tab("Thêm tài liệu", id="docs_tab"):
@@ -75,4 +75,4 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                 ]
             )
 
-app.launch(share=True, server_name="0.0.0.0")
+app.launch(server_name="0.0.0.0", server_port=8004)

@@ -45,7 +45,7 @@ def run_vanna_query(question):
         }).content
         print("Final answer: ", final_answer)
 
-        return sql, df, plot, final_answer
+        return df, plot, final_answer
         
     except Exception as e:
         return f"SQL Error: {str(e)}", pd.DataFrame(), None, "No Answer"
