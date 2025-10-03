@@ -11,6 +11,7 @@ import src.prompts.balance_sheet as BalanceSheetPrompt
 from src.models.balance_sheet import BalanceSheet
 from src.database2.database_helpers import get_engine, save_balance_sheet_to_db
 from src.core.model import model
+from src.database2.database_helpers import run_query
 import shutil
 import pandas as pd
 
@@ -207,3 +208,24 @@ def process_document(file):
             , "", "", "", ""
             , pd.DataFrame(columns=["Mã số", "Mục", "Số liệu cuối kỳ", "Số liệu đầu năm"])
         )
+
+def get_balance_sheets_general_info():
+    query = """SELECT
+    company_name AS "Công ty"
+    , stock_code AS "Mã"
+    , period_end_date AS "Kỳ báo cáo"
+    , currency AS "Đơn vị tiền tệ"
+    , updated_at AS "Cập nhật lúc"
+FROM balance_sheets_at_end_of_period 
+ORDER BY updated_at DESC"""
+
+    rows = run_query(query)  # returns list of dict
+    df = pd.DataFrame(rows)  # convert to dataframe
+
+    # optional: format dates nicely
+    if "Kỳ báo cáo" in df.columns:
+        df["Kỳ báo cáo"] = pd.to_datetime(df["Kỳ báo cáo"]).dt.strftime("%d/%m/%Y")
+    if "Cập nhật lúc" in df.columns:
+        df["Cập nhật lúc"] = pd.to_datetime(df["Cập nhật lúc"]).dt.strftime("%d/%m/%Y %H:%M")
+
+    return df

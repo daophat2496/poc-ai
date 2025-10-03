@@ -1,6 +1,10 @@
 import gradio as gr
-from src.core.balance_sheet import process_document
+from src.core.balance_sheet import process_document, get_balance_sheets_general_info
 from src.core.vanna_core import run_vanna_query
+
+
+def reload_general_info():
+    return get_balance_sheets_general_info()
 
 # --- Gradio Interface ---
 with gr.Blocks(title="Financial Data Assistant") as app:
@@ -75,4 +79,29 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                 ]
             )
 
-app.launch(server_name="0.0.0.0", server_port=8004)
+
+        # === General Info Tab ===
+        with gr.Tab("📑 Báo cáo gần nhất", id="sql_tab"):
+            with gr.Row():
+                with gr.Column():
+                    gr.Markdown("### 🏢 Thông tin báo cáo cân đối kế toán")
+                    gr.Markdown(
+                        "Bảng dưới đây hiển thị **công ty, mã chứng khoán, kỳ báo cáo, đơn vị tiền tệ** "
+                        "và thời điểm cập nhật gần nhất."
+                    )
+                    refresh_btn = gr.Button("🔄 Làm mới dữ liệu")
+
+                    df_output = gr.Dataframe(
+                        headers=["Công ty", "Mã", "Kỳ báo cáo", "Đơn vị tiền tệ", "Cập nhật lúc"],
+                        interactive=False,
+                        wrap=True,
+                        type="pandas"
+                    )
+
+            # auto-load on startup
+            app.load(fn=reload_general_info, inputs=None, outputs=df_output)
+
+            # allow manual refresh
+            refresh_btn.click(fn=reload_general_info, inputs=None, outputs=df_output)
+
+app.launch(server_name="0.0.0.0")

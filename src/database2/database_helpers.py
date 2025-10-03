@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, MetaData, Table
+from sqlalchemy import create_engine, MetaData, Table, text
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from datetime import date
@@ -36,6 +36,20 @@ def get_engine(config=DB_CONFIG):
         raise ValueError(f"Unsupported database type: {db_type}")
 
     return create_engine(db_url, echo=False)
+
+def run_query(query: str, params: dict = None):
+    """
+    Run a raw SQL query and return results as list of dicts.
+    """
+    engine = get_engine()
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text(query), params or {})
+            rows = [dict(row._mapping) for row in result]
+            return rows
+    except SQLAlchemyError as e:
+        print(f"Query failed: {e}")
+        return []
 
 def save_balance_sheet_to_db(
     company_name: str,
