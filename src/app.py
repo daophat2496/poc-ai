@@ -1,7 +1,7 @@
 import gradio as gr
 from src.core.balance_sheet import process_document, get_balance_sheets_general_info
 from src.core.vanna_core import run_vanna_query
-
+from src.core.model import stream_translate_live
 
 def reload_general_info():
     return get_balance_sheets_general_info()
@@ -103,5 +103,27 @@ with gr.Blocks(title="Financial Data Assistant") as app:
 
             # allow manual refresh
             refresh_btn.click(fn=reload_general_info, inputs=None, outputs=df_output)
+        
+        with gr.Tab("Real-time VI → EN Translation"):
+            gr.Markdown("### ⌨️ Live Translation: Vietnamese → English")
+
+            with gr.Row():
+                src = gr.Textbox(
+                    label="Nhập tiếng Việt",
+                    lines=12,
+                    placeholder="Gõ tiếng Việt…",
+                )
+                tgt = gr.Textbox(
+                    label="English Translation",
+                    lines=12,
+                )
+
+            # no 'live=' here – Gradio 5 style
+            src.input(
+                fn=stream_translate_live,
+                inputs=src,
+                outputs=tgt,
+                show_progress="hidden",
+            )
 
 app.launch(server_name="0.0.0.0")
