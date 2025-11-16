@@ -1,5 +1,5 @@
 import gradio as gr
-from src.core.balance_sheet import process_document, get_balance_sheets_general_info
+from src.core.balance_sheet import process_document, get_balance_sheets_general_info, validate_spreadsheet
 from src.core.vanna_core import run_vanna_query
 from src.core.model import stream_translate_live
 
@@ -64,6 +64,31 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                             , interactive=False
                             , wrap=True
                         )
+                    
+                    # --- NEW: Validate spreadsheet section ---
+                    with gr.Group():
+                        gr.Markdown("### Đối chiếu với bảng Excel")
+                        with gr.Row():
+                            spreadsheet_file = gr.File(
+                                file_types=[".xlsx", ".xls", ".csv"],
+                                label="Chọn file Excel để đối chiếu",
+                                type="binary",
+                            )
+                            validate_btn = gr.Button("Validate spreadsheet")
+
+                        validation_status = gr.Markdown()
+                        validation_table = gr.Dataframe(
+                            headers=[
+                                "code",
+                                "name",
+                                "pdf_value",
+                                "excel_value",
+                                "difference",
+                                "is_match",
+                            ],
+                            interactive=False,
+                            wrap=True,
+                        )
             
             # Even handler for the upload button
             upload_btn.click(
@@ -77,6 +102,13 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                     , currency
                     , balance_sheet_table
                 ]
+            )
+
+                # Validate spreadsheet click
+            validate_btn.click(
+                fn=validate_spreadsheet,
+                inputs=[balance_sheet_table, spreadsheet_file],
+                outputs=[validation_status, validation_table],
             )
 
 

@@ -14,6 +14,7 @@ from src.core.model import model
 from src.database2.database_helpers import run_query
 import shutil
 import pandas as pd
+from typing import Dict, Optional
 
 def pdf_to_images(pdf_path, output_folder="image"):
     if os.path.exists(output_folder):
@@ -229,3 +230,201 @@ ORDER BY updated_at DESC"""
         df["Cập nhật lúc"] = pd.to_datetime(df["Cập nhật lúc"]).dt.strftime("%d/%m/%Y %H:%M")
 
     return df
+
+def parse_balance_sheet_spreadsheet(file_bytes: bytes) -> Dict[str, float]:
+    """
+    Parse the uploaded spreadsheet (Excel/CSV) and return a mapping:
+        { balance_sheet_code (str): value_from_spreadsheet (float or None) }
+
+    Assumptions (POC):
+    - File has normal tabular structure with a header row.
+    - We only care about the *first data row* (index 0).
+    - Only the 10 metrics in SPREADSHEET_METRIC_MAPPING are read.
+    """
+
+    # for POC: 10 metrics we want to validate
+    # key = balance sheet "code"
+    # value = column name in the Excel/CSV file
+    SPREADSHEET_METRIC_MAPPING: Dict[str, str] = {
+        "110": "cashAndCashEquivalents",      # cash_and_cash_equivalents
+        "111": "cash",                        # cash
+        "112": "cashEquivalents",             # cash_equivalents
+        "140": "inventoriesNet",              # inventories_total (net)
+        "141": "inventories",                 # inventories
+        "270": "totalAssets",                 # total_assets
+        "300": "liabilities",                 # liabilities
+        "400": "sharholdersEquity",           # owner_equity_total
+        "410": "ownersEquity",                # owner_equity
+        "440": "totalResources",              # total_capital (assets = resources)
+    }
+
+    buffer = BytesIO(file_bytes)
+
+    # Try Excel first, fall back to CSV (your sample file is CSV)
+    try:
+        df = pd.read_excel(buffer)
+    except Exception:
+        buffer.seek(0)
+        df = pd.read_csv(buffer)
+
+    if df.empty:
+        return {}
+
+    # Use only the first data row, ignore all others for POC
+    first_row = df.iloc[0]
+
+    result: Dict[str, float] = {}
+
+    for code, column_name in SPREADSHEET_METRIC_MAPPING.items():
+        if column_name not in df.columns:
+            # Column missing in spreadsheet (POC: just store None)
+            result[code] = None
+            continue
+
+        raw_value = first_row[column_name]
+
+        if pd.isna(raw_value):
+            result[code] = None
+            continue
+
+        # Try to coerce to float, handling things like "1,234" or "5.57E+10"
+        value: float | None
+        try:
+            value = float(raw_value)
+        except (TypeError, ValueError):
+            try:
+                cleaned = str(raw_value).replace(",", "").strip()
+                value = float(cleaned)
+            except (TypeError, ValueError):
+                value = None
+
+        result[code] = value
+
+    return result
+
+# Use for POC, will refactor later
+CODE_TO_NAME = {
+    "110": "cash_and_cash_equivalents",
+    "111": "cash",
+    "112": "cash_equivalents",
+    "140": "inventories_total",
+    "141": "inventories",
+    "270": "total_assets",
+    "300": "liabilities",
+    "400": "owner_equity_total",
+    "410": "owner_equity",
+    "440": "total_capital",
+}
+
+def _parse_numeric(value) -> Optional[float]:
+    """Convert formatted strings like '1,234,567' or '5.57E+10' to float."""
+    if pd.isna(value):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        try:
+            cleaned = str(value).replace(",", "").replace(" ", "").replace(".", "").strip()
+            if cleaned == "":
+                return None
+            return float(cleaned)
+        except (TypeError, ValueError):
+            return None
+
+
+def build_pdf_metric_dict_from_df(df: pd.DataFrame) -> Dict[str, Optional[float]]:
+    """
+    Build mapping: code -> amount_end_of_period
+    from the DataFrame returned by process_document.
+    """
+    metrics: Dict[str, Optional[float]] = {}
+
+    if df is None or df.empty:
+        return metrics
+
+    for _, row in df.iterrows():
+        code = str(row.get("Mã số", "")).strip()
+        if code in CODE_TO_NAME:
+            pdf_value = _parse_numeric(row.get("Số liệu cuối kỳ"))
+            metrics[code] = pdf_value
+
+    return metrics
+
+def validate_balance_sheet_against_spreadsheet(
+    balance_sheet_df: pd.DataFrame,
+    spreadsheet_bytes: bytes,
+    tolerance: float = 0.0,
+) -> pd.DataFrame:
+    """
+    Compare 10 key metrics between:
+      - PDF extraction (DataFrame from process_document)
+      - Spreadsheet (Excel/CSV bytes)
+
+    Returns a DataFrame with:
+      code, name, pdf_value, excel_value, difference, is_match
+    """
+
+    # PDF values: code -> amount_end_of_period
+    pdf_metrics: Dict[str, Optional[float]] = {
+        code: None for code in CODE_TO_NAME.keys()
+    }
+    pdf_metrics.update(build_pdf_metric_dict_from_df(balance_sheet_df))
+
+    # Spreadsheet values: code -> excel_value (from earlier function)
+    excel_metrics: Dict[str, Optional[float]] = parse_balance_sheet_spreadsheet(
+        spreadsheet_bytes
+    )
+
+    rows = []
+
+    for code, name in CODE_TO_NAME.items():
+        pdf_value = pdf_metrics.get(code)
+        excel_value = excel_metrics.get(code)
+
+        difference = None
+        is_match = None
+        if pdf_value is not None and excel_value is not None:
+            difference = excel_value - pdf_value
+            is_match = abs(difference) <= tolerance
+
+        rows.append(
+            {
+                "code": code,
+                "name": name,
+                "pdf_value": pdf_value,
+                "excel_value": excel_value,
+                "difference": difference,
+                "is_match": is_match,
+            }
+        )
+
+    return pd.DataFrame(
+        rows,
+        columns=["code", "name", "pdf_value", "excel_value", "difference", "is_match"],
+    )
+
+EMPTY_VALIDATION_DF = pd.DataFrame(
+    columns=["code", "name", "pdf_value", "excel_value", "difference", "is_match"]
+)
+
+def validate_spreadsheet(balance_sheet_df, spreadsheet_file):
+    """
+    Wrapper for Gradio:
+    - balance_sheet_df: whatever comes from gr.Dataframe (list or DataFrame)
+    - spreadsheet_file: bytes from gr.File(type="binary")
+    """
+    df = pd.DataFrame(balance_sheet_df)  # safe for list-of-lists or DF
+
+    if df.empty:
+        return "Chưa có dữ liệu bảng cân đối để đối chiếu.", EMPTY_VALIDATION_DF
+
+    if spreadsheet_file is None:
+        return "Chưa chọn file Excel để đối chiếu.", EMPTY_VALIDATION_DF
+
+    try:
+        validation_df = validate_balance_sheet_against_spreadsheet(df, spreadsheet_file)
+        mismatches = validation_df[validation_df["is_match"] == False].shape[0]
+        status = f"Đã đối chiếu xong. Số chỉ tiêu lệch: {mismatches}."
+        return status, validation_df
+    except Exception as e:
+        return f"Lỗi khi đối chiếu: {e}", EMPTY_VALIDATION_DF
