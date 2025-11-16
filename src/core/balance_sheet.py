@@ -416,15 +416,39 @@ def validate_spreadsheet(balance_sheet_df, spreadsheet_file):
     df = pd.DataFrame(balance_sheet_df)  # safe for list-of-lists or DF
 
     if df.empty:
-        return "Chưa có dữ liệu bảng cân đối để đối chiếu.", EMPTY_VALIDATION_DF
+        return "Chưa có dữ liệu bảng cân đối để đối chiếu.", df
 
     if spreadsheet_file is None:
-        return "Chưa chọn file Excel để đối chiếu.", EMPTY_VALIDATION_DF
+        return "Chưa chọn file Excel để đối chiếu.", df
 
     try:
         validation_df = validate_balance_sheet_against_spreadsheet(df, spreadsheet_file)
+
+        # Map code -> excel_value / is_match
+        code_series = validation_df["code"].astype(str)
+        excel_map = dict(zip(code_series, validation_df["excel_value"]))
+        match_map = dict(zip(code_series, validation_df["is_match"]))
+
+        # Make sure we are mapping by "Mã số"
+        codes = df["Mã số"].astype(str).str.strip()
+
+        # New column: Số kiểm chứng
+        df["Số kiểm chứng"] = codes.map(excel_map)
+
+        # New column: Tình trạng (match / not match)
+        def status_from_code(code: str) -> str:
+            v = match_map.get(code)
+            if v is True:
+                return "✔ Khớp"
+            if v is False:
+                return "✘ Lệch"
+            return ""
+
+        df["Tình trạng"] = codes.map(status_from_code)
+
         mismatches = validation_df[validation_df["is_match"] == False].shape[0]
         status = f"Đã đối chiếu xong. Số chỉ tiêu lệch: {mismatches}."
-        return status, validation_df
+        return status, df
+
     except Exception as e:
-        return f"Lỗi khi đối chiếu: {e}", EMPTY_VALIDATION_DF
+        return f"Lỗi khi đối chiếu: {e}", df

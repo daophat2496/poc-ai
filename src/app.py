@@ -42,8 +42,20 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                     )
                     upload_btn = gr.Button("Bắt đầu xử lý")
                     upload_status = gr.Markdown()
+
+                    # --- NEW: Validate spreadsheet section ---
+                    with gr.Group():
+                        gr.Markdown("### Đối chiếu với bảng Excel")
+                        spreadsheet_file = gr.File(
+                            file_types=[".xlsx", ".xls", ".csv"],
+                            label="Chọn file Excel để đối chiếu",
+                            type="binary",
+                        )
+                        validate_btn = gr.Button("Validate spreadsheet")
+
+                        validation_status = gr.Markdown()
                 
-                with gr.Column(scale=3):
+                with gr.Column(scale=4):
                     # Company Information Card
                     with gr.Group():
                         gr.Markdown("### Thông tin công ty")
@@ -61,33 +73,8 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                             # , datatype=["str", "str", "number", "number"]
                             headers=["Mã số", "Mục", "Số liệu cuối kỳ", "Số liệu đầu năm"]
                             , datatype=["str", "str", "str", "str"]
-                            , interactive=False
+                            , interactive=True
                             , wrap=True
-                        )
-                    
-                    # --- NEW: Validate spreadsheet section ---
-                    with gr.Group():
-                        gr.Markdown("### Đối chiếu với bảng Excel")
-                        with gr.Row():
-                            spreadsheet_file = gr.File(
-                                file_types=[".xlsx", ".xls", ".csv"],
-                                label="Chọn file Excel để đối chiếu",
-                                type="binary",
-                            )
-                            validate_btn = gr.Button("Validate spreadsheet")
-
-                        validation_status = gr.Markdown()
-                        validation_table = gr.Dataframe(
-                            headers=[
-                                "code",
-                                "name",
-                                "pdf_value",
-                                "excel_value",
-                                "difference",
-                                "is_match",
-                            ],
-                            interactive=False,
-                            wrap=True,
                         )
             
             # Even handler for the upload button
@@ -108,7 +95,7 @@ with gr.Blocks(title="Financial Data Assistant") as app:
             validate_btn.click(
                 fn=validate_spreadsheet,
                 inputs=[balance_sheet_table, spreadsheet_file],
-                outputs=[validation_status, validation_table],
+                outputs=[validation_status, balance_sheet_table],
             )
 
 
