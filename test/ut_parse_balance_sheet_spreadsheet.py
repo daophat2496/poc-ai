@@ -4,7 +4,7 @@ from typing import Dict
 
 from src.core.balance_sheet import parse_balance_sheet_spreadsheet   # ← change import
 
-FILE_PATH = "C:\\Users\\Phat Dao\\Downloads\\chien\\TDS.csv"
+FILE_PATH = "C:\\Users\\Phat Dao\\Downloads\\POC AI\\NOS\\DN - BẢNG CÂN ĐỐI KẾ TOÁN (2).xls"
 
 def test_parse_spreadsheet():
     file_path = Path(FILE_PATH)

@@ -236,85 +236,79 @@ def parse_balance_sheet_spreadsheet(file_bytes: bytes) -> Dict[str, float]:
     Parse the uploaded spreadsheet (Excel/CSV) and return a mapping:
         { balance_sheet_code (str): value_from_spreadsheet (float or None) }
 
-    Assumptions (POC):
-    - File has normal tabular structure with a header row.
-    - We only care about the *first data row* (index 0).
-    - Only the 10 metrics in SPREADSHEET_METRIC_MAPPING are read.
+    New template:
+    - Use column "Mã chỉ tiêu" as the code
+    - Use column "Số cuối kỳ" as the value
+    - Scan all rows and keep ALL codes found in the sheet
     """
-
-    # for POC: 10 metrics we want to validate
-    # key = balance sheet "code"
-    # value = column name in the Excel/CSV file
-    SPREADSHEET_METRIC_MAPPING: Dict[str, str] = {
-        "110": "cashAndCashEquivalents",      # cash_and_cash_equivalents
-        "111": "cash",                        # cash
-        "112": "cashEquivalents",             # cash_equivalents
-        "140": "inventoriesNet",              # inventories_total (net)
-        "141": "inventories",                 # inventories
-        "270": "totalAssets",                 # total_assets
-        "300": "liabilities",                 # liabilities
-        "400": "sharholdersEquity",           # owner_equity_total
-        "410": "ownersEquity",                # owner_equity
-        "440": "totalResources",              # total_capital (assets = resources)
-    }
 
     buffer = BytesIO(file_bytes)
 
-    # Try Excel first, fall back to CSV (your sample file is CSV)
+    # First load raw
     try:
-        df = pd.read_excel(buffer)
+        df_raw = pd.read_excel(buffer, header=None)
     except Exception:
         buffer.seek(0)
-        df = pd.read_csv(buffer)
+        df_raw = pd.read_csv(buffer, header=None)
 
-    if df.empty:
+    if df_raw.empty:
         return {}
 
-    # Use only the first data row, ignore all others for POC
-    first_row = df.iloc[0]
+    # detect header row (search first 20 rows)
+    header_row = None
+    for i in range(min(20, len(df_raw))):
+        row_values = [str(v).strip().lower() for v in df_raw.iloc[i].tolist()]
+        if "mã chỉ tiêu" in row_values and "số cuối kỳ" in row_values:
+            header_row = i
+            break
+
+    if header_row is None:
+        return {}
+
+    # re-read the file with correct header row
+    buffer.seek(0)
+    try:
+        df = pd.read_excel(buffer, header=header_row)
+    except Exception:
+        buffer.seek(0)
+        df = pd.read_csv(buffer, header=header_row)
+
+    # normalize headers
+    df.columns = [str(c).strip() for c in df.columns]
+
+    CODE_HEADER = "Mã chỉ tiêu"
+    VALUE_HEADER = "Số cuối kỳ"
 
     result: Dict[str, float] = {}
 
-    for code, column_name in SPREADSHEET_METRIC_MAPPING.items():
-        if column_name not in df.columns:
-            # Column missing in spreadsheet (POC: just store None)
-            result[code] = None
+    for _, row in df.iterrows():
+        raw_code = row.get(CODE_HEADER)
+        if pd.isna(raw_code):
             continue
 
-        raw_value = first_row[column_name]
-
-        if pd.isna(raw_value):
-            result[code] = None
+        code = str(raw_code).strip()
+        if not code:
             continue
 
-        # Try to coerce to float, handling things like "1,234" or "5.57E+10"
-        value: float | None
-        try:
-            value = float(raw_value)
-        except (TypeError, ValueError):
-            try:
-                cleaned = str(raw_value).replace(",", "").strip()
-                value = float(cleaned)
-            except (TypeError, ValueError):
-                value = None
-
-        result[code] = value
+        raw_value = row.get(VALUE_HEADER)
+        numeric_value = _parse_numeric(raw_value)
+        result[code] = numeric_value
 
     return result
 
 # Use for POC, will refactor later
-CODE_TO_NAME = {
-    "110": "cash_and_cash_equivalents",
-    "111": "cash",
-    "112": "cash_equivalents",
-    "140": "inventories_total",
-    "141": "inventories",
-    "270": "total_assets",
-    "300": "liabilities",
-    "400": "owner_equity_total",
-    "410": "owner_equity",
-    "440": "total_capital",
-}
+# CODE_TO_NAME = {
+#     "110": "cash_and_cash_equivalents",
+#     "111": "cash",
+#     "112": "cash_equivalents",
+#     "140": "inventories_total",
+#     "141": "inventories",
+#     "270": "total_assets",
+#     "300": "liabilities",
+#     "400": "owner_equity_total",
+#     "410": "owner_equity",
+#     "440": "total_capital",
+# }
 
 def _parse_numeric(value) -> Optional[float]:
     """Convert formatted strings like '1,234,567' or '5.57E+10' to float."""
@@ -335,7 +329,7 @@ def _parse_numeric(value) -> Optional[float]:
 def build_pdf_metric_dict_from_df(df: pd.DataFrame) -> Dict[str, Optional[float]]:
     """
     Build mapping: code -> amount_end_of_period
-    from the DataFrame returned by process_document.
+    from the DataFrame returned by process_document
     """
     metrics: Dict[str, Optional[float]] = {}
 
@@ -344,9 +338,11 @@ def build_pdf_metric_dict_from_df(df: pd.DataFrame) -> Dict[str, Optional[float]
 
     for _, row in df.iterrows():
         code = str(row.get("Mã số", "")).strip()
-        if code in CODE_TO_NAME:
-            pdf_value = _parse_numeric(row.get("Số liệu cuối kỳ"))
-            metrics[code] = pdf_value
+        if not code:
+            continue
+
+        pdf_value = _parse_numeric(row.get("Số liệu cuối kỳ"))
+        metrics[code] = pdf_value
 
     return metrics
 
@@ -356,28 +352,36 @@ def validate_balance_sheet_against_spreadsheet(
     tolerance: float = 0.0,
 ) -> pd.DataFrame:
     """
-    Compare 10 key metrics between:
+    Compare metrics between:
       - PDF extraction (DataFrame from process_document)
       - Spreadsheet (Excel/CSV bytes)
-
-    Returns a DataFrame with:
-      code, name, pdf_value, excel_value, difference, is_match
     """
 
     # PDF values: code -> amount_end_of_period
-    pdf_metrics: Dict[str, Optional[float]] = {
-        code: None for code in CODE_TO_NAME.keys()
-    }
-    pdf_metrics.update(build_pdf_metric_dict_from_df(balance_sheet_df))
+    pdf_metrics: Dict[str, Optional[float]] = build_pdf_metric_dict_from_df(balance_sheet_df)
 
-    # Spreadsheet values: code -> excel_value (from earlier function)
+    # Lookup for item names from PDF (column "Mục")
+    name_lookup: Dict[str, str] = {}
+    if balance_sheet_df is not None and not balance_sheet_df.empty:
+        for _, row in balance_sheet_df.iterrows():
+            code = str(row.get("Mã số", "")).strip()
+            if not code:
+                continue
+            name_lookup[code] = str(row.get("Mục", "")).strip()
+
+    # Spreadsheet values: code -> excel_value
+    # (assumes parse_balance_sheet_spreadsheet already returns all codes)
     excel_metrics: Dict[str, Optional[float]] = parse_balance_sheet_spreadsheet(
         spreadsheet_bytes
     )
 
+    # Work on union of all codes from both sources
+    all_codes = sorted(set(pdf_metrics.keys()) | set(excel_metrics.keys()))
+
     rows = []
 
-    for code, name in CODE_TO_NAME.items():
+    for code in all_codes:
+        name = name_lookup.get(code, "")
         pdf_value = pdf_metrics.get(code)
         excel_value = excel_metrics.get(code)
 
@@ -433,15 +437,18 @@ def validate_spreadsheet(balance_sheet_df, spreadsheet_file):
         codes = df["Mã số"].astype(str).str.strip()
 
         # New column: Số kiểm chứng
-        df["Số kiểm chứng"] = codes.map(excel_map)
+        df["Số kiểm chứng"] = (
+            codes.map(excel_map)
+                .apply(format_number)       # <== add this
+        )
 
         # New column: Tình trạng (match / not match)
         def status_from_code(code: str) -> str:
             v = match_map.get(code)
             if v is True:
-                return "✔ Khớp"
+                return "🟢 KHỚP"
             if v is False:
-                return "✘ Lệch"
+                return "🔴 LỆCH"
             return ""
 
         df["Tình trạng"] = codes.map(status_from_code)
