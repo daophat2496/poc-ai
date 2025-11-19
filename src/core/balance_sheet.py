@@ -32,7 +32,7 @@ def encode_image(image_path):
     image.save(buffered, format="JPEG")
     return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
-def query_model_with_image_b64(image_b64_list, prompt, structure: BaseModel = None, system_message = None):
+def query_model_with_image_b64(image_b64_list, prompt, structure: BaseModel = None, system_message = None, stream: bool = False):
     messages = []
     
     # Add system message if provided
@@ -51,7 +51,17 @@ def query_model_with_image_b64(image_b64_list, prompt, structure: BaseModel = No
     messages.append(human_message)
 
     if not structure:
-        return model.invoke(messages).content
+        if stream:
+            # ✅ return a generator of text chunks, using OpenAI streaming via LangChain
+            def _gen():
+                for chunk in model.stream(messages):
+                    if getattr(chunk, "content", None):
+                        yield chunk.content
+
+            return _gen()
+        else:
+            # Non-streaming: single full response
+            return model.invoke(messages).content
 
     return model.with_structured_output(structure, method="function_calling").invoke(messages)
 

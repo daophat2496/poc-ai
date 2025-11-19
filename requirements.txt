@@ -13,3 +13,4 @@ sqlalchemy
 psycopg2-binary
 qdrant-client[fastembed]
 ipython
+xlrd==2.0.1

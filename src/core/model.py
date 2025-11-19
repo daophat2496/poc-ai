@@ -3,6 +3,8 @@ from langchain_openai import OpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from dotenv import load_dotenv
 import os
+from io import BytesIO
+import shutil
 
 load_dotenv(override=True)
 
@@ -17,27 +19,3 @@ model = ChatOpenAI(
     , temperature=0.6
     , top_p=0.95
 )
-
-
-def stream_translate_live(text: str):
-    text = text.strip()
-    if not text:
-        yield ""
-        return
-
-    messages = [
-        SystemMessage(
-            content=(
-                "You are a translation engine. "
-                "Translate from Vietnamese to English. "
-                "Return only the translation, no explanations."
-            )
-        ),
-        HumanMessage(content=text),
-    ]
-
-    partial = ""
-    for chunk in model.stream(messages):
-        if chunk.content:
-            partial += chunk.content
-            yield partial

@@ -1,7 +1,7 @@
 import gradio as gr
 from src.core.balance_sheet import process_document, get_balance_sheets_general_info, validate_spreadsheet
 from src.core.vanna_core import run_vanna_query
-from src.core.model import stream_translate_live
+from src.core.translate import stream_translate_live, stream_translate_pdf
 
 def reload_general_info():
     return get_balance_sheets_general_info()
@@ -134,26 +134,58 @@ with gr.Blocks(title="Financial Data Assistant") as app:
             # allow manual refresh
             refresh_btn.click(fn=reload_general_info, inputs=None, outputs=df_output)
         
-        with gr.Tab("Real-time VI → EN Translation"):
-            gr.Markdown("### ⌨️ Live Translation: Vietnamese → English")
+        with gr.Tab("Dịch"):
+            gr.Markdown("### ⌨️ Dịch")
+
+            direction = gr.Radio(
+                ["VI → EN", "EN → VI"],
+                value="VI → EN",
+                label="Direction",
+                show_label=False,
+                container=False,
+            )
 
             with gr.Row():
                 src = gr.Textbox(
-                    label="Nhập tiếng Việt",
-                    lines=12,
-                    placeholder="Gõ tiếng Việt…",
+                    label="Input",
+                    lines=8,
+                    placeholder="Type…"
                 )
                 tgt = gr.Textbox(
-                    label="English Translation",
-                    lines=12,
+                    label="Output",
+                    lines=8
                 )
 
-            # no 'live=' here – Gradio 5 style
             src.input(
                 fn=stream_translate_live,
-                inputs=src,
+                inputs=[src, direction],
                 outputs=tgt,
-                show_progress="hidden",
+                show_progress="hidden"
+            )
+
+            # --- PDF image-based translation ---
+            gr.Markdown("### 📄 Dịch từ PDF")
+
+            with gr.Row():
+                with gr.Column(scale=1):
+                    pdf_file = gr.File(
+                        file_types=[".pdf"],
+                        label="Upload scanned PDF",
+                        type="binary",
+                    )
+                    pdf_translate_btn = gr.Button("Translate PDF")
+
+                with gr.Column(scale=2):
+                    pdf_output = gr.Textbox(
+                        label="PDF Translation",
+                        lines=20
+                    )
+
+            pdf_translate_btn.click(
+                fn=stream_translate_pdf,
+                inputs=[pdf_file, direction],
+                outputs=pdf_output,
+                show_progress="minimal",
             )
 
 app.launch(server_name="0.0.0.0")
