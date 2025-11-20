@@ -1,6 +1,7 @@
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
+from qdrant_client import QdrantClient
 from dotenv import load_dotenv
 import os
 from io import BytesIO
@@ -18,4 +19,9 @@ model = ChatOpenAI(
     , base_url=os.getenv('OPENAI_BASE_URL')
     , temperature=0.6
     , top_p=0.95
+)
+
+qdrant_client = QdrantClient(
+    url=os.getenv("QDRANT_URL")
+    , api_key=os.getenv("QDRANT_API_KEY")
 )

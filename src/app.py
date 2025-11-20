@@ -188,4 +188,92 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                 show_progress="minimal",
             )
 
+        with gr.Tab("RAG Demo"):
+            gr.Markdown("## 💬 Hỏi đáp với tài liệu (RAG)")
+
+            # === Query Section (same layout as Translate tab) ===
+            gr.Markdown("### 🔍 Truy vấn")
+
+            with gr.Row():
+                # Left: Input question
+                with gr.Column(scale=1):
+                    question_rag = gr.Textbox(
+                        label="Câu hỏi",
+                        placeholder="Ví dụ: Dự án QME-β đạt hiệu suất bao nhiêu?",
+                        lines=6
+                    )
+                    ask_btn = gr.Button("Query")
+
+                # Right: Output (streaming)
+                with gr.Column(scale=2):
+                    rag_answer = gr.Textbox(
+                        label="Kết quả truy vấn",
+                        lines=12
+                    )
+
+            # --- Event: Streaming Query ---
+            def rag_query_stream_gradio(question: str):
+                # get generator from rag_query
+                from src.core.rag_store import rag_query
+                chunk_iter = rag_query(question, stream=True)
+
+                full_text = ""
+                for chunk in chunk_iter:
+                    full_text += chunk
+                    yield full_text
+
+            ask_btn.click(
+                fn=rag_query_stream_gradio,
+                inputs=[question_rag],
+                outputs=rag_answer,
+                show_progress="minimal"
+            )
+
+            gr.Markdown("### 📄 Nạp tài liệu vào Knowledge Base")
+
+            # === Upload Section ===
+            with gr.Row():
+                with gr.Column(scale=1):
+                    upload = gr.File(
+                        label="Upload PDF/DOCX",
+                        type="binary"
+                    )
+                    load_btn = gr.Button("Load to RAG")
+                    load_status = gr.Markdown()
+
+                with gr.Column(scale=2):
+                    gr.Markdown(
+                        """
+                        **Hướng dẫn:**
+                        - Tài liệu sẽ được trích xuất (PDF scanned → OCR)
+                        - Nội dung sẽ được chia nhỏ và đưa vào cơ sở tri thức
+                        - Sau khi nạp xong, bạn có thể truy vấn ngay ở phần trên
+                        """
+                    )
+
+            # --- Event: Load document ---
+            def load_doc(file):
+                from src.core.rag_store import (
+                    extract_text_from_pdf_image_based,
+                    add_doc_to_rag_store,
+                )
+                text = extract_text_from_pdf_image_based(file)
+                add_doc_to_rag_store(text)
+                return "Document indexed into RAG successfully."
+
+            def show_rag_loading():
+                return "⏳ Đang nạp tài liệu vào RAG... Vui lòng chờ..."
+
+            load_btn.click(
+                fn=show_rag_loading,
+                inputs=None,
+                outputs=load_status
+            ).then(
+                fn=load_doc,
+                inputs=upload,
+                outputs=load_status,
+                show_progress="minimal"
+            )
+
 app.launch(server_name="0.0.0.0")
+
