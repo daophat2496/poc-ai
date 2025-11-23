@@ -90,6 +90,7 @@ def process_document(file):
         previous_b64_image = None
         balance_sheet_pages = []
         balance_sheet_pages_name = []
+        balance_sheet_page_paths = []
         # results = []
 
         # Save the uploaded file temporarily
@@ -133,6 +134,7 @@ def process_document(file):
                     balance_sheet_pages.append(b64_image)
                     previous_b64_image = b64_image
                     balance_sheet_pages_name.append({"page": page_file, "is_prev_page_contain_balance_sheet": is_prev_page_contain_balance_sheet})
+                    balance_sheet_page_paths.append(page_path)
                 elif is_prev_page_contain_balance_sheet:
                     is_balance_sheet_detected = True
                     print("All page with balance sheet detected. Stop scan for it.")
@@ -193,7 +195,7 @@ def process_document(file):
 
         # Clean up
         os.remove(temp_pdf_path)
-        shutil.rmtree(images_folder)
+        # shutil.rmtree(images_folder)
 
         df = pd.DataFrame(
             balance_sheet_item_list,
@@ -210,6 +212,7 @@ def process_document(file):
             , balance_sheet.period_end_date.strftime("%Y-%m-%d")
             , balance_sheet.currency
             , df
+            , balance_sheet_page_paths
         )
     
     except Exception as e:
@@ -218,6 +221,7 @@ def process_document(file):
             f"Status: Error processing document - {str(e)}"
             , "", "", "", ""
             , pd.DataFrame(columns=["Mã số", "Mục", "Số liệu cuối kỳ", "Số liệu đầu năm"])
+            , []
         )
 
 def get_balance_sheets_general_info():
