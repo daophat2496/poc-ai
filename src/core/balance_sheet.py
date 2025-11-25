@@ -15,15 +15,17 @@ from src.database2.database_helpers import run_query
 import shutil
 import pandas as pd
 from typing import Dict, Optional
+from uuid import uuid4
 
 def pdf_to_images(pdf_path, output_folder="image"):
+    pdf_name = pdf_path.replace(".pdf", "")
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
     os.makedirs(output_folder)
     
     images = convert_from_path(pdf_path, dpi=100)
     for i, image in enumerate(images):
-        image.save(f"{output_folder}/page_{i+1:03d}.jpg", "JPEG")
+        image.save(f"{output_folder}/{pdf_name}_page_{i+1:03d}.jpg", "JPEG")
     return output_folder
 
 def encode_image(image_path):
@@ -38,7 +40,13 @@ def query_model_with_image_b64(image_b64_list, prompt, structure: BaseModel = No
     # Add system message if provided
     if system_message:
         messages.append(SystemMessage(
-            content=[{"type": "text", "text": system_message}]
+            content=[{"type": "text", "text": system_message}
+                        , {"type": "text", "text": "Give the answer only. No explanation. No reasoning."}
+                    ]
+        ))
+    else:
+        messages.append(SystemMessage(
+            content=[{"type": "text", "text": "Give the answer only. No explanation. No reasoning."}]
         ))
 
     human_message = HumanMessage(
@@ -94,7 +102,8 @@ def process_document(file):
         # results = []
 
         # Save the uploaded file temporarily
-        temp_pdf_path = f"temp_upload.pdf"
+        temp_pdf_name = str(uuid4())
+        temp_pdf_path = f"{temp_pdf_name}.pdf"
         with open(temp_pdf_path, "wb") as f:
             f.write(file)
 
@@ -245,7 +254,7 @@ ORDER BY updated_at DESC"""
 
     return df
 
-def parse_balance_sheet_spreadsheet(file_bytes: bytes) -> Dict[str, float]:
+def parse_balance_sheet_spreadsheet(file_bytes: bytes) -> Dict[str, list[float | None]]:
     """
     Parse the uploaded spreadsheet (Excel/CSV) and return a mapping:
         { balance_sheet_code (str): value_from_spreadsheet (float or None) }
@@ -292,8 +301,9 @@ def parse_balance_sheet_spreadsheet(file_bytes: bytes) -> Dict[str, float]:
 
     CODE_HEADER = "Mã chỉ tiêu"
     VALUE_HEADER = "Số cuối kỳ"
+    VALUE_HEADER_START_YEAR = "Số đầu năm"
 
-    result: Dict[str, float] = {}
+    result: Dict[str, list[float | None]] = {}
 
     for _, row in df.iterrows():
         raw_code = row.get(CODE_HEADER)
@@ -306,7 +316,11 @@ def parse_balance_sheet_spreadsheet(file_bytes: bytes) -> Dict[str, float]:
 
         raw_value = row.get(VALUE_HEADER)
         numeric_value = _parse_numeric(raw_value)
-        result[code] = numeric_value
+
+        raw_value_start_year = row.get(VALUE_HEADER_START_YEAR)
+        numeric_value_start_year = _parse_numeric(raw_value_start_year)
+
+        result[code] = [numeric_value, numeric_value_start_year]
 
     return result
 
@@ -340,12 +354,8 @@ def _parse_numeric(value) -> Optional[float]:
             return None
 
 
-def build_pdf_metric_dict_from_df(df: pd.DataFrame) -> Dict[str, Optional[float]]:
-    """
-    Build mapping: code -> amount_end_of_period
-    from the DataFrame returned by process_document
-    """
-    metrics: Dict[str, Optional[float]] = {}
+def build_pdf_metric_dict_from_df(df: pd.DataFrame) -> Dict[str, list[float | None]]:
+    metrics: Dict[str, list[float | None]] = {}
 
     if df is None or df.empty:
         return metrics
@@ -355,74 +365,75 @@ def build_pdf_metric_dict_from_df(df: pd.DataFrame) -> Dict[str, Optional[float]
         if not code:
             continue
 
-        pdf_value = _parse_numeric(row.get("Số liệu cuối kỳ"))
-        metrics[code] = pdf_value
+        pdf_end = _parse_numeric(row.get("Số liệu cuối kỳ"))
+        pdf_start = _parse_numeric(row.get("Số liệu đầu năm"))
+
+        metrics[code] = [pdf_end, pdf_start]
 
     return metrics
+
 
 def validate_balance_sheet_against_spreadsheet(
     balance_sheet_df: pd.DataFrame,
     spreadsheet_bytes: bytes,
     tolerance: float = 0.0,
 ) -> pd.DataFrame:
-    """
-    Compare metrics between:
-      - PDF extraction (DataFrame from process_document)
-      - Spreadsheet (Excel/CSV bytes)
-    """
 
-    # PDF values: code -> amount_end_of_period
-    pdf_metrics: Dict[str, Optional[float]] = build_pdf_metric_dict_from_df(balance_sheet_df)
+    pdf_metrics = build_pdf_metric_dict_from_df(balance_sheet_df)
+    excel_metrics = parse_balance_sheet_spreadsheet(spreadsheet_bytes)
 
-    # Lookup for item names from PDF (column "Mục")
-    name_lookup: Dict[str, str] = {}
-    if balance_sheet_df is not None and not balance_sheet_df.empty:
-        for _, row in balance_sheet_df.iterrows():
-            code = str(row.get("Mã số", "")).strip()
-            if not code:
-                continue
-            name_lookup[code] = str(row.get("Mục", "")).strip()
+    # Lookup names
+    name_lookup = {
+        str(row["Mã số"]).strip(): str(row["Mục"]).strip()
+        for _, row in balance_sheet_df.iterrows()
+        if str(row.get("Mã số", "")).strip()
+    }
 
-    # Spreadsheet values: code -> excel_value
-    # (assumes parse_balance_sheet_spreadsheet already returns all codes)
-    excel_metrics: Dict[str, Optional[float]] = parse_balance_sheet_spreadsheet(
-        spreadsheet_bytes
-    )
-
-    # Work on union of all codes from both sources
-    all_codes = sorted(set(pdf_metrics.keys()) | set(excel_metrics.keys()))
+    # union of codes
+    all_codes = sorted(set(pdf_metrics) | set(excel_metrics))
 
     rows = []
 
     for code in all_codes:
         name = name_lookup.get(code, "")
-        pdf_value = pdf_metrics.get(code)
-        excel_value = excel_metrics.get(code)
 
-        difference = None
-        is_match = None
-        if pdf_value is not None and excel_value is not None:
-            difference = excel_value - pdf_value
-            is_match = abs(difference) <= tolerance
+        # SAFE GET → ALWAYS returns a list of 2 items
+        pdf_vals = pdf_metrics.get(code, [None, None])
+        excel_vals = excel_metrics.get(code, [None, None])
 
-        rows.append(
-            {
-                "code": code,
-                "name": name,
-                "pdf_value": pdf_value,
-                "excel_value": excel_value,
-                "difference": difference,
-                "is_match": is_match,
-            }
-        )
+        pdf_end, pdf_start = pdf_vals
+        excel_end, excel_start = excel_vals
 
-    return pd.DataFrame(
-        rows,
-        columns=["code", "name", "pdf_value", "excel_value", "difference", "is_match"],
-    )
+        # --- END OF PERIOD ---
+        diff_end = None
+        is_match_end = None
+        if pdf_end is not None and excel_end is not None:
+            diff_end = excel_end - pdf_end
+            is_match_end = abs(diff_end) <= tolerance
+
+        # --- START OF YEAR ---
+        diff_start = None
+        is_match_start = None
+        if pdf_start is not None and excel_start is not None:
+            diff_start = excel_start - pdf_start
+            is_match_start = abs(diff_start) <= tolerance
+
+        rows.append({
+            "code": code,
+            "name": name,
+            "pdf_value": pdf_end,
+            "excel_value": excel_end,
+            "difference": diff_end,
+            "is_match": is_match_end,
+            "excel_value_start_year": excel_start,
+            "difference_start_year": diff_start,
+            "is_match_start_year": is_match_start,
+        })
+
+    return pd.DataFrame(rows)
 
 EMPTY_VALIDATION_DF = pd.DataFrame(
-    columns=["code", "name", "pdf_value", "excel_value", "difference", "is_match"]
+    columns=["code", "name", "pdf_value", "excel_value", "difference", "is_match", "excel_value_start_year", "difference_start_year", "is_match_start_year"]
 )
 
 def validate_spreadsheet(balance_sheet_df, spreadsheet_file):
@@ -442,33 +453,76 @@ def validate_spreadsheet(balance_sheet_df, spreadsheet_file):
     try:
         validation_df = validate_balance_sheet_against_spreadsheet(df, spreadsheet_file)
 
+        # Safety: if validate_balance_sheet_against_spreadsheet returns None or empty
+        if validation_df is None or validation_df.empty:
+            return "Không tìm thấy dữ liệu hợp lệ để đối chiếu trong file Excel.", df
+
         # Map code -> excel_value / is_match
         code_series = validation_df["code"].astype(str)
-        excel_map = dict(zip(code_series, validation_df["excel_value"]))
-        match_map = dict(zip(code_series, validation_df["is_match"]))
+
+        # Main period (cuối kỳ)
+        excel_value_series = validation_df.get("excel_value")
+        is_match_series = validation_df.get("is_match")
+
+        excel_map = dict(zip(code_series, excel_value_series)) if excel_value_series is not None else {}
+        match_map = dict(zip(code_series, is_match_series)) if is_match_series is not None else {}
+
+        # Start-year (đầu năm) – optional, chỉ dùng nếu có cột
+        excel_start_series = validation_df.get("excel_value_start_year")
+        match_start_series = validation_df.get("is_match_start_year")
+
+        excel_map_start_year = (
+            dict(zip(code_series, excel_start_series)) if excel_start_series is not None else {}
+        )
+        match_map_start_year = (
+            dict(zip(code_series, match_start_series)) if match_start_series is not None else {}
+        )
 
         # Make sure we are mapping by "Mã số"
         codes = df["Mã số"].astype(str).str.strip()
 
-        # New column: Số kiểm chứng
-        df["Số kiểm chứng"] = (
-            codes.map(excel_map)
-                .apply(format_number)       # <== add this
+        def with_icon(value, is_match):
+            if value is None:
+                return ""
+            icon = ""
+            if is_match is True:
+                icon = "🟢 "
+            elif is_match is False:
+                icon = "🔴 "
+            return icon + format_number(value)
+
+        # 🔹 Số kiểm chứng (cuối kỳ) – chèn icon trực tiếp, KHÔNG thêm cột Tình trạng
+        df["Số kiểm chứng"] = codes.map(
+            lambda c: with_icon(excel_map.get(c), match_map.get(c))
         )
 
-        # New column: Tình trạng (match / not match)
-        def status_from_code(code: str) -> str:
-            v = match_map.get(code)
-            if v is True:
-                return "🟢 KHỚP"
-            if v is False:
-                return "🔴 LỆCH"
-            return ""
+        # 🔹 Số kiểm chứng đầu năm (nếu có dữ liệu đầu năm)
+        if excel_map_start_year:
+            df["Số kiểm chứng đầu năm"] = codes.map(
+                lambda c: with_icon(
+                    excel_map_start_year.get(c),
+                    match_map_start_year.get(c),
+                )
+            )
 
-        df["Tình trạng"] = codes.map(status_from_code)
+        # Đếm số chỉ tiêu lệch (cả cuối kỳ + đầu năm nếu có)
+        mismatches_end = sum(1 for v in match_map.values() if v is False)
+        mismatches_start = sum(1 for v in match_map_start_year.values() if v is False)
+        mismatches = mismatches_end + mismatches_start
 
-        mismatches = validation_df[validation_df["is_match"] == False].shape[0]
         status = f"Đã đối chiếu xong. Số chỉ tiêu lệch: {mismatches}."
+
+        # --- Reorder table columns ---
+        desired_order = [
+            "Mã số",
+            "Mục",
+            "Số liệu cuối kỳ",
+            "Số kiểm chứng",
+            "Số liệu đầu năm",
+            "Số kiểm chứng đầu năm",
+        ]
+
+        df = df[[c for c in desired_order if c in df.columns]]
         return status, df
 
     except Exception as e:

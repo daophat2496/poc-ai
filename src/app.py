@@ -75,7 +75,7 @@ with gr.Blocks(title="Financial Data Assistant") as app:
 
                         with gr.Row():
                             # LEFT: table
-                            with gr.Column(scale=1):
+                            with gr.Column(scale=2):
                                 balance_sheet_table = gr.Dataframe(
                                     headers=["Mã số", "Mục", "Số liệu cuối kỳ", "Số liệu đầu năm"],
                                     datatype=["str", "str", "str", "str"],
@@ -115,7 +115,7 @@ with gr.Blocks(title="Financial Data Assistant") as app:
                     report_date,
                     currency,
                     balance_sheet_table,
-                    balance_sheet_pages,  # giữ như trước
+                    balance_sheet_pages,
                 ],
             )
 
