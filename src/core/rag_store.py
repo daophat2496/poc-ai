@@ -259,7 +259,7 @@ def _retrieve_chunks_for_docs(
     raw_hits = qdrant_client.search(
         collection_name="rag_docs",
         query_vector=q_vec,
-        limit=max_chunks * 5,
+        limit=max_chunks,
         with_payload=True,
     )
 
