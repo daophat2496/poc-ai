@@ -12,43 +12,6 @@ if not os.path.exists(uploads_folder):
 def reload_general_info():
     return get_balance_sheets_general_info()
 
-
-custom_head = """
-    <script>
- window.difyChatbotConfig = {
-  token: '4Er9SQKRqH80UMDG',
-  baseUrl: 'http://210.211.110.72',
-  inputs: {
-    // You can define the inputs from the Start node here
-    // key is the variable name
-    // e.g.
-    // name: "NAME"
-  },
-  systemVariables: {
-    // user_id: 'YOU CAN DEFINE USER ID HERE',
-    // conversation_id: 'YOU CAN DEFINE CONVERSATION ID HERE, IT MUST BE A VALID UUID',
-  },
-  userVariables: {
-    // avatar_url: 'YOU CAN DEFINE USER AVATAR URL HERE',
-    // name: 'YOU CAN DEFINE USER NAME HERE',
-  },
- }
-</script>
-<script
- src="http://210.211.110.72/embed.min.js"
- id="4Er9SQKRqH80UMDG"
- defer>
-</script>
-<style>
-  #dify-chatbot-bubble-button {
-    background-color: #1C64F2 !important;
-  }
-  #dify-chatbot-bubble-window {
-    width: 24rem !important;
-    height: 40rem !important;
-  }
-</style>
-"""
 # --- Gradio Interface ---
 with gr.Blocks(title="Financial Data Assistant") as app:
 
@@ -376,4 +339,4 @@ with gr.Blocks(title="Financial Data Assistant") as app:
     # ---- Pre-load list of docs ----
     app.load(fn=list_docs_markdown, inputs=None, outputs=rag_docs_list)
 
-app.launch(server_name="0.0.0.0", head=custom_head)
+app.launch(server_name="0.0.0.0")
