@@ -21,8 +21,8 @@ QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 
 embedder = OpenAIEmbeddings(
     model="text-embedding-3-small",
-    api_key=os.getenv("OPENAI_API_KEY"),
-    base_url=os.getenv("OPENAI_BASE_URL")
+    api_key=os.getenv("OPENAI_OPENAI_API_KEY"),
+    base_url=os.getenv("OPENAI_OPENAI_BASE_URL")
 )
 
 vectorstore = Qdrant(
@@ -53,7 +53,7 @@ def extract_text_from_pdf_image_based(file_bytes):
     tmp = "tmp_ocr.pdf"
     with open(tmp, "wb") as f:
         f.write(file_bytes)
-    imgs = convert_from_path(tmp, dpi=120)
+    imgs = convert_from_path(tmp, dpi=100)
 
     all_chunks = []
     for i, img in enumerate(imgs):
@@ -69,6 +69,9 @@ def extract_text_from_pdf_image_based(file_bytes):
                 {"type": "text", "text": "Extract all text."}
             ]}
         ]).content
+
+        with open("ocr_output.txt", "a", encoding="utf-8") as f:
+            f.write(text)
 
         all_chunks.append(text)
 
