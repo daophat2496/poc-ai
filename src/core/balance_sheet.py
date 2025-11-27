@@ -16,16 +16,34 @@ import shutil
 import pandas as pd
 from typing import Dict, Optional
 from uuid import uuid4
+from datetime import datetime
 
-def pdf_to_images(pdf_path, output_folder="image"):
-    pdf_name = pdf_path.replace(".pdf", "")
-    if os.path.exists(output_folder):
-        shutil.rmtree(output_folder)
-    os.makedirs(output_folder)
-    
-    images = convert_from_path(pdf_path, dpi=100)
-    for i, image in enumerate(images):
-        image.save(f"{output_folder}/{pdf_name}_page_{i+1:03d}.jpg", "JPEG")
+UPLOAD_DIR = "uploads"
+
+def pdf_to_images(pdf_path: str, output_root="image"):
+    """
+    Convert a PDF into images inside:
+        image/<pdf_name_without_ext>/image_001.jpg
+    No deletion of parent folders.
+    """
+
+    os.makedirs(output_root, exist_ok=True)
+
+    # Get clean name: remove extension but KEEP timestamp
+    pdf_name = os.path.splitext(os.path.basename(pdf_path))[0]
+
+    # Create folder: image/<pdf_name>/
+    output_folder = os.path.join(output_root, pdf_name)
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Convert PDF → images
+    images = convert_from_path(pdf_path, dpi=72)
+
+    for i, image in enumerate(images, start=1):
+        img_path = os.path.join(output_folder, f"image_{i:03d}.jpg")
+        image.save(img_path, "JPEG")
+        # print("Saved image:", img_path)
+
     return output_folder
 
 def encode_image(image_path):
@@ -82,9 +100,9 @@ def format_number(num):
         return f"{num:,.0f}".replace(",", ".")
     return num
 
-def process_document(file):
-    if not file:
-        return "No file uploaded", ""
+def process_document(file_path: str):
+    if not file_path:
+        return "No file uploaded", "", "", "", "", pd.DataFrame()
     
     print("Start processing document")
     try:
@@ -101,13 +119,25 @@ def process_document(file):
         balance_sheet_page_paths = []
         # results = []
 
-        # Save the uploaded file temporarily
-        temp_pdf_name = str(uuid4())
-        temp_pdf_path = f"{temp_pdf_name}.pdf"
-        with open(temp_pdf_path, "wb") as f:
-            f.write(file)
+        # Ensure uploads folder exists
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-        images_folder = pdf_to_images(temp_pdf_path)
+        original_name = os.path.basename(file_path)
+        base, ext = os.path.splitext(original_name)
+        ts = datetime.now().strftime("%Y%m%d%H%M%S")
+        new_filename = f"{base}_{ts}{ext}"
+        saved_path = os.path.join(UPLOAD_DIR, new_filename)
+        shutil.copy(file_path, saved_path)
+        print(f"Saved upload to: {saved_path}")
+
+
+        # Save the uploaded file temporarily
+        # temp_pdf_name = str(uuid4())
+        # temp_pdf_path = f"{temp_pdf_name}.pdf"
+        # with open(temp_pdf_path, "wb") as f:
+        #     f.write(file)
+
+        images_folder = pdf_to_images(saved_path)
 
         for page_file in sorted(os.listdir(images_folder)):
             page_path = os.path.join(images_folder, page_file)
@@ -203,7 +233,7 @@ def process_document(file):
         save_balance_sheet_to_db(company_name, stock_code, balance_sheet)
 
         # Clean up
-        os.remove(temp_pdf_path)
+        # os.remove(temp_pdf_path)
         # shutil.rmtree(images_folder)
 
         df = pd.DataFrame(
