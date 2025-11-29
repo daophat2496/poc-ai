@@ -12,7 +12,7 @@ from langchain_qdrant import Qdrant
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from uuid import uuid4
 from typing import List
-from src.core.model import model, qdrant_client
+from src.core.model import model, qdrant_client, model_temp_0
 from src.core.balance_sheet import query_model_with_image_b64
 from src.models.rag_store import CatalogSelection
 
@@ -317,6 +317,21 @@ def _retrieve_chunks_for_docs(
 
     return context_chunks, set(source_docs)
 
+def consolidate_question(q: str) -> str:
+    messages = [
+        {"role": "system", "content": """Rewrite the user question into a short, clean, and search-friendly query
+Rules:
+- Keep ALL important keywords (names, numbers, document codes, điều luật, nghị định, thông tư, công văn, project names)
+- DO NOT remove or merge technical terms
+- DO NOT infer, guess, expand, or explain anything
+- DO NOT shorten if it risks losing meaning
+- ONLY remove filler words, repetition, politeness particles, broken chunks, and irrelevant phrases
+- Keep it in the same language (Vietnamese stays Vietnamese)
+- Output only the rewritten question. No explanation"""
+        },
+        {"role": "user", "content": q},
+    ]
+    return model_temp_0.invoke(messages).content.strip()
 
 def rag_query(question: str, stream: bool = True):
     """
@@ -336,8 +351,11 @@ def rag_query(question: str, stream: bool = True):
 
     if use_rag:
         # Retrieve chunks from those docs only
+        consolidated_question = consolidate_question(question)
+        print(f"Consolidated question for rag query: {consolidated_question}")
+
         context_chunks, source_docs = _retrieve_chunks_for_docs(
-            question=question,
+            question=consolidated_question,
             allowed_doc_names=allowed_doc_names,
             max_chunks=4,
         )

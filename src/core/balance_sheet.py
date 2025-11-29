@@ -9,7 +9,7 @@ import base64
 from pydantic import BaseModel
 import src.prompts.balance_sheet as BalanceSheetPrompt
 from src.models.balance_sheet import BalanceSheet
-from src.database2.database_helpers import get_engine, save_balance_sheet_to_db
+from src.database2.database_helpers import get_engine, save_balance_sheet_to_db, save_balance_sheet_year_start_to_db
 from src.core.model import model
 from src.database2.database_helpers import run_query
 import shutil
@@ -231,6 +231,7 @@ def process_document(file_path: str):
         ]
 
         save_balance_sheet_to_db(company_name, stock_code, balance_sheet)
+        save_balance_sheet_year_start_to_db(company_name, stock_code, balance_sheet)
 
         # Clean up
         # os.remove(temp_pdf_path)

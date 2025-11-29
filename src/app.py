@@ -15,7 +15,7 @@ def reload_general_info():
 # --- Gradio Interface ---
 with gr.Blocks(title="Báo cáo tài chính") as app:
 
-    with gr.Tabs(selected="chat_tab") as tabs:
+    with gr.Tabs(selected="docs_tab") as tabs:
 
         with gr.Tab("✅ Bảng cân đối", id="docs_tab"):
             gr.Markdown("## Tải tài liệu lên")
@@ -154,7 +154,7 @@ with gr.Blocks(title="Báo cáo tài chính") as app:
         #     refresh_btn.click(fn=reload_general_info, inputs=None, outputs=df_output)
         
         with gr.Tab("✅ Dịch báo cáo"):
-            gr.Markdown("### ⌨️ Dịch")
+            gr.Markdown("### ⌨️ Dịch trực tiếp")
 
             direction = gr.Radio(
                 ["VI → EN", "EN → VI"],
@@ -218,7 +218,7 @@ with gr.Blocks(title="Báo cáo tài chính") as app:
                 with gr.Column(scale=1):
                     question_rag = gr.Textbox(
                         label="Câu hỏi",
-                        placeholder="Ví dụ: Dự án QME-β đạt hiệu suất bao nhiêu?",
+                        placeholder="Ví dụ: Trách nhiệm và quyền hạn của người làm công tác kiểm toán nội bộ là gì?",
                         lines=6
                     )
                     ask_btn = gr.Button("Query")

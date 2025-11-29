@@ -25,6 +25,14 @@ model = ChatOpenAI(
     , top_p=0.95
 )
 
+model_temp_0 = ChatOpenAI(
+    api_key=os.getenv('OPENAI_API_KEY')
+    , model=os.getenv('MODEL_NAME')
+    , base_url=os.getenv('OPENAI_BASE_URL')
+    , temperature=0.0
+    , top_p=0.95
+)
+
 qdrant_client = QdrantClient(
     url=os.getenv("QDRANT_URL")
     , api_key=os.getenv("QDRANT_API_KEY")
