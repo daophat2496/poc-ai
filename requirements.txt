@@ -1,5 +1,5 @@
 gradio==5.20.1
-vanna[qdrant,openai]==0.7.9
+vanna[qdrant,openai,gemini]==0.7.9
 pandas==2.2.3
 plotly==6.1.2
 python-dotenv
@@ -17,3 +17,4 @@ ipython==8.26.0
 xlrd==2.0.1
 PyPDF2==3.0.1
 docx==0.2.4
+google-cloud-aiplatform==1.128.0

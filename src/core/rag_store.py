@@ -13,8 +13,11 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from uuid import uuid4
 from typing import List
 from src.core.model import model, qdrant_client, model_temp_0
-from src.core.balance_sheet import query_model_with_image_b64
+from src.core.balance_sheet import query_model_with_image_b64, pdf_to_images, encode_image
 from src.models.rag_store import CatalogSelection
+import glob
+from io import BytesIO
+from PIL import Image
 
 QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
@@ -48,34 +51,57 @@ def extract_text_from_pdf_text_based(file_bytes):
     return "\n".join(all_text)
 
 
-def extract_text_from_pdf_image_based(file_bytes):
-    # Convert PDF to image
-    tmp = "tmp_ocr.pdf"
-    with open(tmp, "wb") as f:
-        f.write(file_bytes)
-    imgs = convert_from_path(tmp, dpi=100)
+def extract_text_from_pdf_image_based(pdf_path: str):
+    """
+    OCR an image-based PDF.
+    pdf_path: path to PDF file.
+    Returns: combined extracted text from all pages.
+    """
+
+    # 1) Convert PDF → image folder
+    image_folder = pdf_to_images(pdf_path)
+
+    # 2) Build output folder + txt file
+    os.makedirs("ocr_output", exist_ok=True)
+
+    pdf_name = os.path.splitext(os.path.basename(pdf_path))[0]
+    output_txt = f"ocr_output/{pdf_name}.txt"
+
+    # Clear old output file
+    open(output_txt, "w", encoding="utf-8").close()
+
+    # 3) Collect all images sorted
+    image_paths = sorted(glob.glob(os.path.join(image_folder, "image_*.jpg")))
 
     all_chunks = []
-    for i, img in enumerate(imgs):
-        print(f"OCR text from page {i}")
-        buffer = BytesIO()
-        img.save(buffer, format="JPEG")
-        b64_img = base64.b64encode(buffer.getvalue()).decode()
+
+    for i, img_path in enumerate(image_paths, 1):
+        print(f"OCR page {i}: {img_path}")
+
+        # img = Image.open(img_path)
+        # buf = BytesIO()
+        # img.save(buf, format="JPEG")
+        b64 = encode_image(img_path)
 
         text = model.invoke([
             {"role": "system", "content": "You are OCR engine. Return plain text only."},
             {"role": "user", "content": [
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}},
-                {"type": "text", "text": "Extract all text."}
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
+                {"type": "text", "text": "Extract all text from this page."}
             ]}
         ]).content
 
-        with open("ocr_output.txt", "a", encoding="utf-8") as f:
-            f.write(text)
+        print(f"Page {i} extracted length: {len(text.strip())}")
+
+        # Optional: mark empty pages so you can SEE them in the txt
+        # if not text.strip():
+        #     text = f"[NO TEXT EXTRACTED FROM PAGE {i}]"
+
+        with open(output_txt, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
 
         all_chunks.append(text)
 
-    os.remove(tmp)
     return "\n".join(all_chunks)
 
 

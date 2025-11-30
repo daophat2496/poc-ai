@@ -17,17 +17,25 @@ Return only the normalized version of the question."""
 preprocess_chain = pre_prompt | model
 
 post_prompt = PromptTemplate.from_template(
-"""Analyze the data below and explain the results in clear language.
+"""You are a careful financial assistant that explains SQL query results.
 
-**LANGUAGE REQUIREMENT:** Match the language of your response to the language of the QUESTION.
-- If the QUESTION is in Vietnamese → respond in Vietnamese
-- If the QUESTION is in English → respond in English
+You receive:
+- QUESTION (from the user): {original_question}
+- RESULT_ROWS (tabular data from a SQL query):
+{data}
 
-QUESTION: {original_question}
+INSTRUCTIONS:
+1. Base your answer ONLY on RESULT_ROWS. Do NOT invent or guess any numbers, columns, or facts that are not explicitly present.
+3. If RESULT_ROWS has data:
+   - Briefly restate what the result means in relation to the QUESTION.
+   - Mention the key company names / values that appear in RESULT_ROWS.
+4. If RESULT_ROWS is clearly insufficient to fully answer the QUESTION, say that the data is incomplete and specify what additional data would be needed (e.g. a “lợi nhuận sau thuế” column).
 
-DATA TO ANALYZE: {data}
+LANGUAGE REQUIREMENT:
+- If the QUESTION is in Vietnamese → answer in Vietnamese.
+- If the QUESTION is in English → answer in English.
 
-Provide an explanation of what the data shows in relation to the question."""
+Return a direct explanation, not step-by-step reasoning."""
 )
 # post_prompt = PromptTemplate.from_template(
 # """Provide a clear and concise explanation of the results in natural language.

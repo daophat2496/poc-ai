@@ -37,7 +37,7 @@ def pdf_to_images(pdf_path: str, output_root="image"):
     os.makedirs(output_folder, exist_ok=True)
 
     # Convert PDF → images
-    images = convert_from_path(pdf_path, dpi=72)
+    images = convert_from_path(pdf_path, dpi=100)
 
     for i, image in enumerate(images, start=1):
         img_path = os.path.join(output_folder, f"image_{i:03d}.jpg")

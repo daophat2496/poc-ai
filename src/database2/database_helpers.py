@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, MetaData, Table, text
+from sqlalchemy import create_engine, MetaData, Table, text, select
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from datetime import date
@@ -190,3 +190,30 @@ def get_column_name_and_description(table_name):
         (column["name"], column.get("comment", "") or "")
         for column in columns
     ]
+
+
+def get_distinct_values(table_name: str, column_names: list[str]):
+    """
+    Return a list of distinct tuples for the given columns in a table.
+
+    Example:
+        get_distinct_values("balance_sheets_at_end_of_period", ["company_name", "stock_code"])
+        -> [("ABC Corp", "ABC"), ("XYZ Corp", "XYZ"), ...]
+    """
+    engine = get_engine()
+    metadata = MetaData()
+    table = Table(table_name, metadata, autoload_with=engine)
+
+    # Validate and collect columns
+    selected_cols = []
+    for col in column_names:
+        if col not in table.c:
+            raise ValueError(f"Column '{col}' not found in table '{table_name}'")
+        selected_cols.append(table.c[col])
+
+    stmt = select(*selected_cols).distinct()
+
+    with engine.connect() as conn:
+        result = conn.execute(stmt)
+        # Return list of tuples in the same order as column_names
+        return [tuple(row[col] for col in column_names) for row in result]

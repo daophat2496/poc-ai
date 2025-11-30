@@ -1,4 +1,5 @@
-from vanna.openai.openai_chat import OpenAI_Chat
+# from vanna.openai.openai_chat import OpenAI_Chat
+from vanna.google.gemini_chat import GoogleGeminiChat
 from vanna.qdrant.qdrant import Qdrant_VectorStore
 from qdrant_client import QdrantClient
 import pandas as pd
@@ -10,19 +11,34 @@ from src.core.model import qdrant_client
 
 load_dotenv(override=True)
 
-class MyVanna(Qdrant_VectorStore, OpenAI_Chat):
+class MyVanna(Qdrant_VectorStore, GoogleGeminiChat):
     def __init__(self, config=None):
-        Qdrant_VectorStore.__init__(self, config=config)
-        OpenAI_Chat.__init__(self, config=config)
+        Qdrant_VectorStore.__init__(self, config={
+            "client": qdrant_client,
+        })
+
+        # --- Gemini config (NO OPENAI_* HERE) ---
+        gemini_model = os.getenv("MODEL_NAME") or "gemini-2.5-flash"
+        gemini_api_key = os.getenv("OPENAI_API_KEY")
+
+        print("MyVanna -> Using Gemini model:", gemini_model)
+
+        GoogleGeminiChat.__init__(self, config={
+            "api_key": gemini_api_key,
+            "model_name": gemini_model,
+            # you can add other Gemini-specific keys if the class supports them
+            # e.g. "max_output_tokens": 8192
+        })
 
 def get_vanna():
-    vn = MyVanna(config={
-        'client': qdrant_client
-        , 'api_key': os.getenv("OPENAI_API_KEY")
-        , 'model': os.getenv("MODEL_NAME")
-        , 'base_api_url': os.getenv("OPENAI_BASE_URL")
-        , 'max_tokens': 10000
-    })
+    # vn = MyVanna(config={
+    #     'client': qdrant_client
+    #     , 'api_key': os.getenv("OPENAI_API_KEY")
+    #     , 'model': "gemini-2.5-flash"
+    #     , 'base_api_url': os.getenv("OPENAI_BASE_URL")
+    #     , 'max_tokens': 10000
+    # })
+    vn = MyVanna()
 
     # vn.connect_to_sqlite('./db/financial_statement.db')
     vn.connect_to_postgres(
