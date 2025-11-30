@@ -18,25 +18,22 @@ def run_vanna_query(question):
             f"{company} — {stock}"
             for company, stock in company_and_stock_code
         )
-        # normalized_question = preprocess_chain.invoke({
-        #     "question": question
-        #     , "company_and_stock_code": company_and_stock_code_str
-        # }).content
-        # print("Normalized question: ", normalized_question)
 
-        # time.sleep(2)
-        prompt = f"""
-You are a financial assistant AI.
-The database has balance sheet data for the following companies:
+        prompt = f"""You have access to a database containing balance sheet metrics for the following companies:
 {company_and_stock_code_str}
+When generating the query:
+- Include the relevant numeric values (assets, liabilities, cash, ratios…)
+- If the question involves comparisons (>, <, >=, <=), you MUST fetch the numbers for each company and show the values used to decide
+- If the answer requires a calculation (growth %, difference, ratio), you MUST compute it and show the computed values
+- DO NOT guess missing data
+- Only use numbers that exist in the database
+- USE language that matched with the question for naming the column
 User question:
 {question}"""
         print(f"Vanna prompt: {prompt}")
 
         vn = get_vanna()
-        print(f"before vn.generate_sql(prompt)")
         sql = vn.generate_sql(prompt)
-        print(f"after vn.generate_sql(prompt)")
         print(sql)
         df = vn.run_sql(sql)
         print(df)

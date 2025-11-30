@@ -18,7 +18,7 @@ class MyVanna(Qdrant_VectorStore, GoogleGeminiChat):
         })
 
         # --- Gemini config (NO OPENAI_* HERE) ---
-        gemini_model = os.getenv("MODEL_NAME") or "gemini-2.5-flash"
+        gemini_model = os.getenv("ADVANCED_MODEL_NAME") or  os.getenv("MODEL_NAME") or "gemini-2.5-flash"
         gemini_api_key = os.getenv("OPENAI_API_KEY")
 
         print("MyVanna -> Using Gemini model:", gemini_model)

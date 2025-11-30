@@ -10,39 +10,44 @@ id | company_name | stock_code | period_end_date | currency | created_at | updat
 def add_column_description():
     vn = get_vanna()
     doc = """Column name list and their description in *mini_balance_sheets_at_end_of_period_with_year_start* table, use this table for query:
-id: system id for company (do not use in response)
-company_name: name for the company
-stock_code: stock code of the company
-period_end_date: date of the balance sheet
-currency: currency use in the balance sheet
-cash_and_cash_equivalents: Tiền và các khoản tương đương tiền
-short_term_receivables: Tài sản ngắn hạn
-inventories_total: Hàng tồn kho
-long_term_assets: Tài sản dài hạn
-total_assets: Tổng tài sản
-liabilities: Nợ phải trả
-short_term_debt: Nợ ngắn hạn
-long_term_liabilities: Nợ dài hạn
-owner_equity: Vốn chủ sở hữu
-contributions_from_owners: Vốn góp của chủ sở hữu
-undistributed_post_tax_profits: Lợi nhuận sau thuế chưa phân phối
-total_capital: Tổng nguồn vốn
-total_profit: Tổng lợi nhuận
-total_profit_after_tax: Lợi nhuận sau thuế
-cash_and_cash_equivalents_year_start: Tiền và các khoản tương đương tiền vào đầu năm
-short_term_receivables_year_start: Tài sản ngắn hạn vào đầu năm
-inventories_total_year_start: Hàng tồn kho vào đầu năm
-long_term_assets_year_start: Tài sản dài hạn vào đầu năm
-total_assets_year_start: Tổng tài sản vào đầu năm
-liabilities_year_start: Nợ phải trả vào đầu năm
-short_term_debt_year_start: Nợ ngắn hạn vào đầu năm
-long_term_liabilities_year_start: Nợ dài hạn vào đầu năm
-owner_equity_year_start: Vốn chủ sở hữu vào đầu năm
-contributions_from_owners_year_start: Vốn góp của chủ sở hữu vào đầu năm
-undistributed_post_tax_profits_year_start: Lợi nhuận sau thuế chưa phân phối vào đầu năm
-total_capital_year_start: Tổng nguồn vốn vào đầu năm
-total_profit_year_start: Tổng lợi nhuận vào đầu năm
-total_profit_after_tax_year_start: Lợi nhuận sau thuế vào đầu năm"""
+| id: system id for company (do not use in response)
+| company_name: name for the company | Tên công ty
+| stock_code: stock code of the company | Mã chứng khoán
+| period_end_date: date of the balance sheet | Kỳ báo cáo
+| currency: currency use in the balance sheet | Đơn vị
+| cash_and_cash_equivalents: Tiền và các khoản tương đương tiền
+| short_term_receivables: Tài sản ngắn hạn
+| inventories_total: Hàng tồn kho
+| long_term_assets: Tài sản dài hạn
+| total_assets: Tổng tài sản
+| liabilities: Nợ phải trả
+| short_term_debt: Nợ ngắn hạn
+| long_term_liabilities: Nợ dài hạn
+| owner_equity: Vốn chủ sở hữu
+| contributions_from_owners: Vốn thực góp của chủ sở hữu
+| undistributed_post_tax_profits: Lợi nhuận sau thuế chưa phân phối, Lỗ/lãi lũy kế
+| total_capital: Tổng nguồn vốn
+| total_profit: Tổng lợi nhuận
+| total_profit_after_tax: Lợi nhuận sau thuế
+== INSTRUCTION ==
+- Each record is for financial metrics of one company at one point of time (period_end_date)
+- (If applicable) Include period_end_date in query so downstream process can know the context of data
+- You can decide if the the question only need one period or more than one. If one, you can decide to get the latest period of that company or not
+"""
+# cash_and_cash_equivalents_year_start: Tiền và các khoản tương đương tiền vào đầu năm
+# short_term_receivables_year_start: Tài sản ngắn hạn vào đầu năm
+# inventories_total_year_start: Hàng tồn kho vào đầu năm
+# long_term_assets_year_start: Tài sản dài hạn vào đầu năm
+# total_assets_year_start: Tổng tài sản vào đầu năm
+# liabilities_year_start: Nợ phải trả vào đầu năm
+# short_term_debt_year_start: Nợ ngắn hạn vào đầu năm
+# long_term_liabilities_year_start: Nợ dài hạn vào đầu năm
+# owner_equity_year_start: Vốn chủ sở hữu vào đầu năm
+# contributions_from_owners_year_start: Vốn thực góp của chủ sở hữu vào đầu năm
+# undistributed_post_tax_profits_year_start: Lợi nhuận sau thuế chưa phân phối vào đầu năm, Lỗ/lãi lũy kế vào đầu năm
+# total_capital_year_start: Tổng nguồn vốn vào đầu năm
+# total_profit_year_start: Tổng lợi nhuận vào đầu năm
+# total_profit_after_tax_year_start: Lợi nhuận sau thuế vào đầu năm"""
 
     vn.train(documentation=doc)
 

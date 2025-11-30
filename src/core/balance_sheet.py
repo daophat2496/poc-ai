@@ -17,6 +17,7 @@ import pandas as pd
 from typing import Dict, Optional
 from uuid import uuid4
 from datetime import datetime
+from decimal import Decimal
 
 UPLOAD_DIR = "uploads"
 
@@ -96,7 +97,7 @@ def is_affirmative_response(response: str) -> bool:
     return "yes" in response.strip().lower()
 
 def format_number(num):
-    if isinstance(num, (int, float)):
+    if isinstance(num, (int, float, Decimal)):
         return f"{num:,.0f}".replace(",", ".")
     return num
 
@@ -269,10 +270,22 @@ def get_balance_sheets_general_info():
     company_name AS "Công ty"
     , stock_code AS "Mã"
     , period_end_date AS "Kỳ báo cáo"
-    , currency AS "Đơn vị tiền tệ"
-    , updated_at AS "Cập nhật lúc"
-FROM balance_sheets_at_end_of_period 
-ORDER BY updated_at DESC"""
+    , cash_and_cash_equivalents AS "Tiền và các khoản tương đương tiền"
+    , short_term_receivables AS "Tài sản ngắn hạn"
+    , inventories_total AS "Hàng tồn kho"
+    , long_term_assets AS "Tài sản dài hạn"
+    , total_assets AS "Tổng tài sản"
+    , liabilities AS "Nợ phải trả"
+    , short_term_debt AS "Nợ ngắn hạn"
+    , long_term_liabilities AS "Nợ dài hạn"
+    , owner_equity AS "Vốn chủ sở hữu"
+    , contributions_from_owners AS "Vốn thực góp của chủ sở hữu"
+    , undistributed_post_tax_profits AS "Lợi nhuận sau thuế chưa phân phối"
+    , total_capital AS "Tổng nguồn vốn"
+    , total_profit AS "Tổng lợi nhuận"
+    , total_profit_after_tax AS "Lợi nhuận sau thuế"
+FROM mini_balance_sheets_at_end_of_period_with_year_start 
+ORDER BY stock_code, period_end_date DESC"""
 
     rows = run_query(query)  # returns list of dict
     df = pd.DataFrame(rows)  # convert to dataframe
@@ -282,6 +295,14 @@ ORDER BY updated_at DESC"""
         df["Kỳ báo cáo"] = pd.to_datetime(df["Kỳ báo cáo"]).dt.strftime("%d/%m/%Y")
     if "Cập nhật lúc" in df.columns:
         df["Cập nhật lúc"] = pd.to_datetime(df["Cập nhật lúc"]).dt.strftime("%d/%m/%Y %H:%M")
+
+    # --- Apply format_number to ALL numeric columns except excluded ones ---
+    exclude = {"Công ty", "Mã", "Kỳ báo cáo"}
+
+    for col in df.columns:
+        # print(f"Column: {col}")
+        if col not in exclude:
+            df[col] = df[col].apply(format_number)
 
     return df
 

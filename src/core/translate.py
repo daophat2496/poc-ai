@@ -55,7 +55,7 @@ def stream_translate_pdf(file_bytes: bytes, direction: str):
         f.write(file_bytes)
 
     try:
-        images_folder = pdf_to_images(temp_pdf_path, output_folder=images_folder)
+        images_folder = pdf_to_images(temp_pdf_path, output_root=images_folder)
         page_files = sorted(os.listdir(images_folder))
         if not page_files:
             yield "Không tìm thấy trang nào trong PDF."
@@ -89,8 +89,7 @@ def stream_translate_pdf(file_bytes: bytes, direction: str):
             chunk_iter = query_model_with_image_b64(
                 [b64_image],
                 prompt=(
-                    "Translate all readable text on this page. "
-                    "Do not repeat the source language. "
+                    "Translate all readable text on this page."
                     "Start directly with the translation."
                 ),
                 structure=None,

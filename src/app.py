@@ -30,7 +30,7 @@ with gr.Blocks(title="Báo cáo tài chính") as app:
                     upload_status = gr.Markdown()
 
                     # --- NEW: Validate spreadsheet section ---
-                    with gr.Accordion("Validate spreadsheet", open=False):
+                    with gr.Accordion("Đối chiếu bảng biểu", open=False):
                         spreadsheet_file = gr.File(
                             file_types=[".xlsx", ".xls", ".csv"],
                             label="Chọn file Excel để đối chiếu",
@@ -106,20 +106,38 @@ with gr.Blocks(title="Báo cáo tài chính") as app:
                 outputs=[validation_status, balance_sheet_table],
             )
 
-        with gr.Tab("Tra cứu bảng cân đối", id="chat_tab"):
+        with gr.Tab("✅ Tra cứu, truy vấn báo cáo tài chính", id="chat_tab"):
             gr.Markdown("## 💬 Truy Vấn")
             with gr.Row():
                 # Left Panel - Chat
                 with gr.Column(scale=1):
-                    question = gr.Textbox(label="Đặt câu hỏi", placeholder="E.g.: Tổng tiền mặt của công ty TDS vào quý I 2025 là bao nhiêu?")
+                    question = gr.Textbox(label="Đặt câu hỏi", placeholder="E.g.: Công ty nào có lợi nhuận sau thuế âm hai năm liên tiếp?")
                     submit_btn = gr.Button("Submit")
                     final_answer_output = gr.Markdown(label="Trả lời")
                     
                 # Right Panel - Results
-                with gr.Column(scale=2):
+                with gr.Column(scale=1):
                     # sql_output = gr.Code(label="Ngôn ngữ truy vấn", language="sql")
-                    dataframe_output = gr.Dataframe(label="Dữ liệu thô", wrap=True)
+                    dataframe_output = gr.Dataframe(label="Dữ liệu thô", wrap=True, visible=False)
                     plot_output = gr.Plot(label="Biểu đồ", container=True)
+
+            gr.HTML("<div style='height: 20px;'></div>")   # 👈 spacing here
+
+            with gr.Row():
+                with gr.Accordion("Dữ liệu", open=False):
+                    gr.Markdown("### Thông tin báo cáo tài chính")
+                    # gr.Markdown(
+                    #     "Bảng dưới đây hiển thị **công ty, mã chứng khoán, kỳ báo cáo, đơn vị tiền tệ** "
+                    #     "và thời điểm cập nhật gần nhất."
+                    # )
+                    # refresh_btn = gr.Button("🔄 Làm mới dữ liệu")
+
+                    df_output = gr.Dataframe(
+                        # headers=["Công ty", "Mã", "Kỳ báo cáo", "Đơn vị tiền tệ", "Cập nhật lúc"],
+                        interactive=False,
+                        # wrap=True,
+                        type="pandas"
+                    )
             
             # Even handler for the submit button
             submit_btn.click(
@@ -128,6 +146,11 @@ with gr.Blocks(title="Báo cáo tài chính") as app:
                 , outputs=[dataframe_output, plot_output, final_answer_output]
             )
 
+            # auto-load on startup
+            app.load(fn=get_balance_sheets_general_info, inputs=None, outputs=df_output)
+
+            # # allow manual refresh
+            # refresh_btn.click(fn=get_balance_sheets_general_info, inputs=None, outputs=df_output)
 
         # # === General Info Tab ===
         # with gr.Tab("📑 Báo cáo gần nhất", id="sql_tab"):

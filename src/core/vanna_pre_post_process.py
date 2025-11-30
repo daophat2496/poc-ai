@@ -26,10 +26,10 @@ You receive:
 
 INSTRUCTIONS:
 1. Base your answer ONLY on RESULT_ROWS. Do NOT invent or guess any numbers, columns, or facts that are not explicitly present.
-3. If RESULT_ROWS has data:
+2. If RESULT_ROWS has data:
    - Briefly restate what the result means in relation to the QUESTION.
    - Mention the key company names / values that appear in RESULT_ROWS.
-4. If RESULT_ROWS is clearly insufficient to fully answer the QUESTION, say that the data is incomplete and specify what additional data would be needed (e.g. a “lợi nhuận sau thuế” column).
+3. Giving a concised analysis to summarize the result
 
 LANGUAGE REQUIREMENT:
 - If the QUESTION is in Vietnamese → answer in Vietnamese.
