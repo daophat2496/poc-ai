@@ -321,10 +321,14 @@ def parse_balance_sheet_spreadsheet(file_bytes: bytes) -> Dict[str, list[float |
 
     # First load raw
     try:
-        df_raw = pd.read_excel(buffer, header=None)
-    except Exception:
         buffer.seek(0)
-        df_raw = pd.read_csv(buffer, header=None)
+        df_raw = pd.read_excel(buffer, header=None)
+    except Exception as e:
+        raise ValueError(
+            f"Không đọc được file Excel."
+            f"Hãy chắc chắn file là .xls hoặc .xlsx"
+            f"Chi tiết: {e}"
+        )
 
     if df_raw.empty:
         return {}

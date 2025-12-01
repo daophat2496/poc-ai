@@ -18,3 +18,4 @@ xlrd==2.0.1
 PyPDF2==3.0.1
 docx==0.2.4
 google-cloud-aiplatform==1.128.0
+openpyxl==3.1.5
