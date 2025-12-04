@@ -11,6 +11,7 @@ import src.prompts.balance_sheet as BalanceSheetPrompt
 from src.models.balance_sheet import BalanceSheet
 from src.database2.database_helpers import get_engine, save_balance_sheet_to_db, save_balance_sheet_year_start_to_db
 from src.core.model import model
+from src.core.util import verify_balance_sheet_sums
 from src.database2.database_helpers import run_query
 import shutil
 import pandas as pd
@@ -246,8 +247,15 @@ def process_document(file_path: str):
         df["Số liệu cuối kỳ"] = df["Số liệu cuối kỳ"].apply(format_number)
         df["Số liệu đầu năm"] = df["Số liệu đầu năm"].apply(format_number)
 
+        #### Checksum
+        status = ""
+        if verify_balance_sheet_sums(all_balance_sheet_items):
+            status = "Trạng thái: 🟢 Xử lý thành công. 🟢 Đối chiếu tổng khớp."
+        else:
+            status = "Trạng thái: 🟢 Xử lý thành công. 🔴 Đối chiếu tổng chưa khớp."
+
         return (
-            "Status: Processing completed successfully"
+            status
             , company_name
             , stock_code
             , balance_sheet.period_end_date.strftime("%Y-%m-%d")
@@ -259,7 +267,7 @@ def process_document(file_path: str):
     except Exception as e:
         print(str(e))
         return (
-            f"Status: Error processing document - {str(e)}"
+            f"Trạng thái: 🔴 Xử lý không thành công. - {str(e)}"
             , "", "", "", ""
             , pd.DataFrame(columns=["Mã số", "Mục", "Số liệu cuối kỳ", "Số liệu đầu năm"])
             , []
