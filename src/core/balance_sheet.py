@@ -402,20 +402,32 @@ def parse_balance_sheet_spreadsheet(file_bytes: bytes) -> Dict[str, list[float |
 #     "440": "total_capital",
 # }
 
-def _parse_numeric(value) -> Optional[float]:
-    """Convert formatted strings like '1,234,567' or '5.57E+10' to float."""
-    if pd.isna(value):
+def _parse_numeric(value):
+    if value is None:
         return None
+
+    s = str(value).strip()
+    if not s:
+        return None
+
+    # ----- CASE 1: Dot-grouped integer like 222.104.376 or -222.104.376 -----
+    # Pattern: digits and dots only, possibly starting with '-'
+    import re
+    if re.fullmatch(r"-?\d{1,3}(\.\d{3})+", s):
+        # Treat as thousand separators
+        return float(s.replace(".", ""))
+
+    # ----- CASE 2: Normal decimal or integer (e.g., 123.0, -456.7) -----
     try:
-        return float(value)
-    except (TypeError, ValueError):
-        try:
-            cleaned = str(value).replace(",", "").replace(" ", "").replace(".", "").strip()
-            if cleaned == "":
-                return None
-            return float(cleaned)
-        except (TypeError, ValueError):
-            return None
+        return float(s)
+    except ValueError:
+        pass
+
+    # ----- CASE 3: Remove commas (Excel export) -----
+    try:
+        return float(s.replace(",", ""))
+    except ValueError:
+        return None
 
 
 def build_pdf_metric_dict_from_df(df: pd.DataFrame) -> Dict[str, list[float | None]]:
@@ -474,6 +486,10 @@ def validate_balance_sheet_against_spreadsheet(
         if pdf_end is not None and excel_end is not None:
             diff_end = excel_end - pdf_end
             is_match_end = abs(diff_end) <= tolerance
+        
+        if not is_match_end:
+            print(f"Excel value: {excel_end}")
+            print(f"PDF value: {pdf_end}")
 
         # --- START OF YEAR ---
         diff_start = None
@@ -481,6 +497,10 @@ def validate_balance_sheet_against_spreadsheet(
         if pdf_start is not None and excel_start is not None:
             diff_start = excel_start - pdf_start
             is_match_start = abs(diff_start) <= tolerance
+
+        if not is_match_start:
+            print(f"Excel value: {excel_start}")
+            print(f"PDF value: {pdf_start}")
 
         rows.append({
             "code": code,
